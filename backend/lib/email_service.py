@@ -77,7 +77,7 @@ def build_ics_calendar(
         "END:STANDARD\r\n"
         "END:VTIMEZONE\r\n"
         "BEGIN:VEVENT\r\n"
-        f"UID:{reference}-{appointment_id}@ameya-consultancy.vercel.app\r\n"
+        f"UID:{reference}-{appointment_id}@ameyaconsultancy.com\r\n"
         f"DTSTAMP:{now_utc}\r\n"
         f"DTSTART;TZID=Asia/Kolkata:{dt_start_str}\r\n"
         f"DTEND;TZID=Asia/Kolkata:{dt_end_str}\r\n"
@@ -135,7 +135,7 @@ def build_google_calendar_url(
         "dates": dates,
         "details": details,
         "location": location,
-        "sprop": "website:ameya-consultancy.vercel.app",
+        "sprop": "website:ameyaconsultancy.com",
     }
     return f"https://calendar.google.com/calendar/render?{urllib.parse.urlencode(params)}"
 
