@@ -20,8 +20,8 @@ router = APIRouter(prefix="/appointments", tags=["appointments"])
 AVAILABLE_WEEKDAYS = {1, 3, 5}  # Tuesday, Thursday, Saturday
 AVAILABLE_DAY_NAMES = ["Tuesday", "Thursday", "Saturday"]
 AVAILABLE_TIMES = [
-    "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
-    "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM",
+    "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM",
+    "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
 ]
 LEGACY_TIME_PREFERENCES = {"Morning preference", "Afternoon preference", "Evening preference"}
 ALLOWED_ATTACHMENT_TYPES = {"application/pdf", "image/jpeg", "image/png"}
@@ -96,7 +96,7 @@ async def upload_appointment_attachment(file: UploadFile = File(...)) -> Appoint
 async def create_appointment(payload: AppointmentCreate) -> Appointment:
     validate_requested_date(payload.preferred_date)
     if payload.preferred_time not in AVAILABLE_TIMES and payload.preferred_time not in LEGACY_TIME_PREFERENCES:
-        raise HTTPException(status_code=422, detail="Please choose an available time between 10:00 AM and 6:00 PM.")
+        raise HTTPException(status_code=422, detail="Please choose an available time between 8:00 AM–10:00 AM or 4:00 PM–6:00 PM.")
     if payload.attachment_ids:
         try:
             object_ids = [ObjectId(value) for value in payload.attachment_ids]
@@ -107,7 +107,8 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
             raise HTTPException(status_code=422, detail="One or more attachments could not be found.")
     reference = f"AMY-{secrets.token_hex(3).upper()}"
     is_virtual = payload.consultation_type == "video_consultation"
-    meeting_url = f"https://meet.google.com/amy-{reference.lower().replace('amy-', '')}-{secrets.token_hex(2)}" if is_virtual else None
+    default_meet = os.environ.get("PERMANENT_MEET_URL") or f"https://meet.google.com/amy-{reference.lower().replace('amy-', '')}-{secrets.token_hex(2)}"
+    meeting_url = default_meet if is_virtual else None
 
     calendar_url = build_google_calendar_url(
         patient_name=payload.full_name,

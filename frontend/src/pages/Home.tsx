@@ -12,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  Copy,
   FileText,
   HeartHandshake,
   Mail,
@@ -159,7 +158,7 @@ const initialForm: AppointmentCreate = {
   consultation_type: "video_consultation",
   focus_area: "antenatal",
   preferred_date: "",
-  preferred_time: "10:00 AM",
+  preferred_time: "8:00 AM",
   notes: "",
   attachment_ids: [],
 };
@@ -476,21 +475,21 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
       <fieldset className="space-y-3 border-t border-[#E5DEC9] pt-6" data-testid={testId("time-section")}>
         <div className="flex items-center justify-between">
           <legend className="font-serif text-lg sm:text-xl text-[#164D59]">Choose a time slot</legend>
-          <span className="text-[11px] text-[#839788]">India time · 10 AM–6 PM</span>
+          <span className="text-[11px] text-[#839788]">India time (IST) · 8–10 AM & 4–6 PM</span>
         </div>
-        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {(bookingOptions.data?.available_times ?? [
-            "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
-            "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM",
+            "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM",
+            "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
           ]).map((time) => (
             <button
               key={time}
               type="button"
               aria-pressed={form.preferred_time === time}
               onClick={() => setForm((current) => ({ ...current, preferred_time: time }))}
-              className={`min-h-10 rounded-xl border px-1.5 py-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+              className={`min-h-10 rounded-xl border px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                 form.preferred_time === time
-                  ? "border-[#0E776C] bg-[#0E776C] text-white shadow-sm"
+                  ? "border-[#0E776C] bg-[#0E776C] text-white shadow-sm font-bold"
                   : "border-[#D9DFD4] bg-white text-[#52706B] hover:border-[#0E776C]"
               }`}
               data-testid={testId(`time-${time.replace(/[: ]/g, "-").toLowerCase()}`)}
@@ -687,7 +686,7 @@ export default function Home() {
                 <Button onClick={openBooking} className="h-12 sm:h-13 rounded-sm bg-[#0E776C] px-6 text-sm sm:text-base font-bold text-white shadow-[0_12px_24px_rgba(14,119,108,0.18)] hover:-translate-y-0.5 hover:bg-[#095D54]" data-testid="hero-book-button">Book a consultation <ArrowRight className="ml-2 size-4" /></Button>
                 <a href="#care" className="inline-flex h-12 sm:h-13 items-center justify-center rounded-sm border border-[#9EB9AD] px-6 text-sm sm:text-base font-semibold text-[#164D59] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0E776C] hover:bg-white" data-testid="hero-care-link">See the care pathways</a>
               </div>
-              <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-x-6 gap-y-2.5 border-t border-[#C9D3C6] pt-4 sm:pt-5 text-xs sm:text-sm text-[#52706B]" data-testid="hero-contact-strip"><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-[#0E776C]" /> Confidential by design</span><span className="flex items-center gap-2"><Clock3 className="size-4 text-[#0E776C]" /> Appointments · 10 AM–6 PM</span></div>
+              <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-x-6 gap-y-2.5 border-t border-[#C9D3C6] pt-4 sm:pt-5 text-xs sm:text-sm text-[#52706B]" data-testid="hero-contact-strip"><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-[#0E776C]" /> Confidential by design</span><span className="flex items-center gap-2"><Clock3 className="size-4 text-[#0E776C]" /> Appointments · 8–10 AM & 4–6 PM</span></div>
             </Reveal>
             <Reveal className="relative min-h-[26rem] sm:min-h-[36rem] lg:min-h-[42rem] mt-4 lg:mt-0" delay={0.12}>
               <motion.div className="absolute right-0 sm:right-[7%] top-0 h-[85%] sm:h-[78%] w-[82%] sm:w-[66%] overflow-hidden rounded-t-[10rem] sm:rounded-t-[13rem] rounded-b-sm border-[8px] sm:border-[10px] border-[#F4F1E8] bg-[#D7E5D7] shadow-[0_24px_50px_rgba(0,54,49,0.18)]" data-testid="hero-doctor-card" animate={reduceMotion ? undefined : { y: [0, -8, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}><img src={DR_NISHA_PORTRAIT_URL} alt="Dr. Nisha Ghelani in a white coat and stethoscope" className="h-full w-full object-cover object-[50%_18%]" fetchPriority="high" decoding="sync" data-testid="hero-doctor-image" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#164D59]/85 to-transparent p-5 sm:p-6 pt-16 sm:pt-20 text-white"><p className="font-serif text-xl sm:text-2xl" data-testid="hero-doctor-name">Dr. Nisha Ghelani</p><p className="mt-1 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.16em] text-white/75" data-testid="hero-doctor-credential">MD (Ob & Gyn) · 20+ years</p></div></motion.div>
@@ -720,7 +719,7 @@ export default function Home() {
 
       <footer className="bg-[#114B5F] text-white" data-testid="site-footer">
         <div className="mx-auto max-w-7xl px-5 pt-12 pb-36 sm:py-12 sm:px-8 lg:px-12">
-          <div className="grid gap-8 border-b border-white/15 pb-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]"><div><div className="flex items-center gap-3"><span className="size-12 sm:size-14 overflow-hidden rounded-full border border-white/20 bg-[#FFFDF8]"><img src={AMEYA_LOGO_URL} alt="Ameya Consultancy woman and leaf logo" className="size-full scale-125 object-cover" data-testid="footer-brand-logo" /></span><span className="text-lg sm:text-xl font-semibold" data-testid="footer-brand">Ameya Consultancy</span></div><p className="mt-4 max-w-sm text-xs sm:text-sm leading-relaxed text-white/65" data-testid="footer-description">Her Health Connect—a private space for expert women's health conversations with Dr. Nisha Ghelani.</p></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-contact-label">Contact</p><div className="mt-3 space-y-2.5 text-xs sm:text-sm text-white/75"><a href="tel:+916355734167" className="flex items-center gap-2 hover:text-white" data-testid="footer-phone-link"><Phone className="size-4" /> +91 63557 34167</a><a href="mailto:nishaghelani78@gmail.com" className="flex items-center gap-2 break-all hover:text-white" data-testid="footer-email-link"><Mail className="size-4" /> nishaghelani78@gmail.com</a></div></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-availability-label">Availability</p><p className="mt-3 text-xs sm:text-sm leading-relaxed text-white/75" data-testid="footer-availability-copy">Tuesday, Thursday & Saturday<br />10:00 AM–6:00 PM</p><Button onClick={scrollToBooking} variant="outline" className="mt-4 rounded-full border-white/30 bg-transparent text-white hover:bg-white hover:text-[#114B5F]" data-testid="footer-book-button">Book a time <ArrowUpRight className="ml-1.5 size-4" /></Button></div></div>
+          <div className="grid gap-8 border-b border-white/15 pb-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]"><div><div className="flex items-center gap-3"><span className="size-12 sm:size-14 overflow-hidden rounded-full border border-white/20 bg-[#FFFDF8]"><img src={AMEYA_LOGO_URL} alt="Ameya Consultancy woman and leaf logo" className="size-full scale-125 object-cover" data-testid="footer-brand-logo" /></span><span className="text-lg sm:text-xl font-semibold" data-testid="footer-brand">Ameya Consultancy</span></div><p className="mt-4 max-w-sm text-xs sm:text-sm leading-relaxed text-white/65" data-testid="footer-description">Her Health Connect—a private space for expert women's health conversations with Dr. Nisha Ghelani.</p></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-contact-label">Contact</p><div className="mt-3 space-y-2.5 text-xs sm:text-sm text-white/75"><a href="tel:+916355734167" className="flex items-center gap-2 hover:text-white" data-testid="footer-phone-link"><Phone className="size-4" /> +91 63557 34167</a><a href="mailto:nishaghelani78@gmail.com" className="flex items-center gap-2 break-all hover:text-white" data-testid="footer-email-link"><Mail className="size-4" /> nishaghelani78@gmail.com</a></div></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-availability-label">Availability</p><p className="mt-3 text-xs sm:text-sm leading-relaxed text-white/75" data-testid="footer-availability-copy">Tuesday, Thursday & Saturday<br />8:00 AM–10:00 AM & 4:00 PM–6:00 PM</p><Button onClick={scrollToBooking} variant="outline" className="mt-4 rounded-full border-white/30 bg-transparent text-white hover:bg-white hover:text-[#114B5F]" data-testid="footer-book-button">Book a time <ArrowUpRight className="ml-1.5 size-4" /></Button></div></div>
           <div className="mt-8 rounded-2xl border border-[#F4C2B4]/35 bg-[#0d3b4b] p-4 sm:p-5" data-testid="statutory-notice"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]">Important care notice</p><p className="mt-2 max-w-3xl text-xs sm:text-sm leading-relaxed text-white/75">Ameya Consultancy is for planned consultations and expert advice. It is not an emergency service. For acute pain, heavy bleeding, breathing difficulty, or any obstetric emergency, please contact your nearest hospital emergency department immediately.</p></div>
           <div className="mt-8 flex flex-col gap-4 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between"><p data-testid="footer-copyright">© {new Date().getFullYear()} Ameya Consultancy · Dr. Nisha Ghelani, MD (Ob & Gyn)</p><nav className="flex items-center gap-6" aria-label="Legal" data-testid="footer-legal-links"><a href="/terms" className="min-h-10 py-2.5 font-semibold text-white/80 underline-offset-4 hover:underline hover:text-white" data-testid="footer-terms-link">Terms & Conditions</a><a href="/privacy" className="min-h-10 py-2.5 font-semibold text-white/80 underline-offset-4 hover:underline hover:text-white" data-testid="footer-privacy-link">Privacy Policy</a></nav></div>
         </div>
@@ -777,42 +776,26 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Virtual Meeting Details */}
-            {confirmedAppointment?.consultation_type === "video_consultation" && confirmedAppointment.meeting_url && (
-              <div className="rounded-2xl border border-[#B8DAD2] bg-[#EAF2F1] p-4 space-y-2.5" data-testid="confirmation-meet-card">
-                <div className="flex items-center gap-2 text-[#0E776C] font-bold text-xs sm:text-sm">
-                  <Video className="size-4" />
-                  <span>Your Google Meet Link</span>
-                </div>
-                <p className="font-mono text-xs text-[#164D59] break-all bg-white/90 p-2.5 rounded-xl border border-[#B8DAD2]">
-                  {confirmedAppointment.meeting_url}
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <a
-                    href={confirmedAppointment.meeting_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0E776C] px-3.5 text-xs font-bold text-white hover:bg-[#095D54]"
-                  >
-                    <Video className="size-3.5" /> Join Google Meet
-                  </a>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (confirmedAppointment.meeting_url) {
-                        navigator.clipboard.writeText(confirmedAppointment.meeting_url);
-                        toast.success("Meeting link copied to clipboard!");
-                      }
-                    }}
-                    className="h-9 text-xs border-[#0E776C] text-[#0E776C] hover:bg-white"
-                  >
-                    <Copy className="mr-1 size-3.5" /> Copy Link
-                  </Button>
-                </div>
+            {/* Confirmation status notice */}
+            <div className="rounded-2xl border border-[#B8DAD2] bg-[#EAF2F1] p-4 space-y-2.5" data-testid="confirmation-status-card">
+              <div className="flex items-center gap-2 text-[#0E776C] font-bold text-xs sm:text-sm">
+                <Check className="size-4" />
+                <span>Confirmation Dispatched</span>
               </div>
-            )}
+              <p className="text-xs text-[#35504D] leading-relaxed">
+                {confirmedAppointment?.consultation_type === "video_consultation"
+                  ? "Your Google Meet link and interactive calendar invite have been sent directly to your email and WhatsApp."
+                  : "Your clinic visit confirmation and location directions have been sent directly to your email and WhatsApp."}
+              </p>
+              <div className="rounded-xl bg-white/90 p-2.5 border border-[#B8DAD2] text-[11px] text-[#52706B] space-y-1">
+                <p className="flex items-center gap-1.5 font-semibold text-[#164D59]">
+                  <Mail className="size-3.5 text-[#0E776C]" /> Email: <span className="font-normal text-[#35504D] break-all">{confirmedAppointment?.email}</span>
+                </p>
+                <p className="flex items-center gap-1.5 font-semibold text-[#164D59]">
+                  <Phone className="size-3.5 text-[#0E776C]" /> WhatsApp: <span className="font-normal text-[#35504D]">{confirmedAppointment?.phone}</span>
+                </p>
+              </div>
+            </div>
 
             {/* Action Buttons: Add to Google Calendar & Send Confirmation to WhatsApp */}
             <div className="space-y-2 pt-1">
@@ -834,20 +817,9 @@ export default function Home() {
                   rel="noreferrer"
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] text-xs font-bold text-white shadow-sm hover:bg-[#1EBE5D] transition-colors"
                 >
-                  <MessageCircle className="size-4" /> Send Details to WhatsApp
+                  <MessageCircle className="size-4" /> Open Details on WhatsApp
                 </a>
               )}
-            </div>
-
-            {/* Email dispatch notice */}
-            <div className="rounded-xl bg-[#F4F1E8] p-3 text-xs leading-relaxed text-[#52706B] space-y-1">
-              <p className="flex items-center gap-1.5 font-semibold text-[#164D59]">
-                <Mail className="size-3.5 text-[#0E776C]" /> Confirmation sent to:
-              </p>
-              <p className="text-[11px] break-all">{confirmedAppointment?.email}</p>
-              <p className="text-[10px] text-[#839788] pt-1">
-                An interactive Google Calendar invite (.ics) has been dispatched. You can RSVP (Yes / No / Maybe) directly from Gmail.
-              </p>
             </div>
           </div>
         </DialogContent>
