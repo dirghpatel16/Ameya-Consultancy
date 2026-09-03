@@ -175,6 +175,7 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
             notes=payload.notes,
             meeting_url=meeting_url,
             reference=reference,
+            attachment_ids=payload.attachment_ids,
         )
     except Exception as email_err:
         logger.warning("Email notification error (non-fatal): %s", email_err)

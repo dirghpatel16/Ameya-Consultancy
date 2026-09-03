@@ -180,13 +180,43 @@ async def send_appointment_emails(
     notes: str,
     meeting_url: str | None,
     reference: str,
+    attachment_ids: list[str] | None = None,
 ) -> bool:
     """
     Send confirmation email with interactive Google Calendar invite (.ics)
     to both patient and doctor (dirgh8011patel@gmail.com).
+    For the doctor, attaches any uploaded medical reports/scans.
     """
+    import base64
+    import json
+    import urllib.request
+    import urllib.error
+    import ssl
+
     is_virtual = consultation_type == "video_consultation"
     type_label = "Virtual Consultation (Google Meet)" if is_virtual else "In-Person Clinic Visit"
+
+    # Fetch patient uploaded reports if any
+    report_attachments = []
+    attachment_filenames = []
+    if attachment_ids:
+        try:
+            from bson import ObjectId
+            from lib.db import db
+            object_ids = [ObjectId(aid) for aid in attachment_ids]
+            cursor = db.appointment_attachments.find({"_id": {"$in": object_ids}})
+            async for doc in cursor:
+                fname = doc.get("file_name", "medical_report.pdf")
+                data_bytes = doc.get("data", b"")
+                if data_bytes:
+                    report_attachments.append({
+                        "filename": fname,
+                        "content": base64.b64encode(data_bytes).decode("utf-8"),
+                    })
+                    size_kb = len(data_bytes) // 1024
+                    attachment_filenames.append(f"{fname} ({size_kb} KB)")
+        except Exception as exc:
+            logger.warning("Failed to fetch medical attachments for doctor email: %s", exc)
 
     ics_content = build_ics_calendar(
         appointment_id=appointment_id,
@@ -278,7 +308,24 @@ async def send_appointment_emails(
     </html>
     """
 
-    # 2. Render Doctor HTML email (doctor-focused alert voice)
+    # 2. Render Doctor HTML email (doctor-focused alert voice with reports)
+    reports_html = ""
+    if attachment_filenames:
+        reports_list = "".join(f"<li><strong>{fn}</strong></li>" for fn in attachment_filenames)
+        reports_html = f"""
+        <div class="detail-row" style="margin-top: 16px;">
+          <span class="detail-label">Attached Patient Reports ({len(attachment_filenames)}):</span>
+          <ul style="margin: 6px 0 0 0; padding-left: 20px; color: #164D59;">
+            {reports_list}
+          </ul>
+          <p style="margin: 8px 0 0 0; font-size: 12px; color: #0E776C; font-weight: bold;">
+            📎 All report files are attached directly to this email for your immediate review.
+          </p>
+        </div>
+        """
+    else:
+        reports_html = '<div class="detail-row"><span class="detail-label">Attached Reports:</span> None uploaded</div>'
+
     doctor_html = f"""
     <!DOCTYPE html>
     <html>
@@ -326,6 +373,7 @@ async def send_appointment_emails(
           <div class="detail-row"><span class="detail-label">Consultation Date:</span> {preferred_date}</div>
           <div class="detail-row"><span class="detail-label">Consultation Time:</span> {preferred_time} (IST)</div>
           {f'<div class="detail-row"><span class="detail-label">Patient Notes / Concern:</span> {notes}</div>' if notes else '<div class="detail-row"><span class="detail-label">Patient Notes:</span> None provided</div>'}
+          {reports_html}
 
           {f'''
           <div style="margin-top: 24px; padding: 18px; background: #EAF2F1; border-radius: 12px; border: 1px solid #B8DAD2;">
@@ -353,29 +401,27 @@ async def send_appointment_emails(
     doctor_subject = f"📅 New Booking: {patient_name} — {preferred_date} at {preferred_time} ({reference})"
     from_email = os.environ.get("RESEND_FROM_EMAIL", "Ameya Consultancy <onboarding@resend.dev>")
 
-    import base64
-    import json
-    import urllib.request
-    import urllib.error
-    import ssl
-
     b64_ics = base64.b64encode(ics_content.encode("utf-8")).decode("utf-8")
     resend_key = os.environ.get("RESEND_API_KEY")
 
-    def _send_resend(recipient: str, subject: str, html_body: str) -> bool:
+    def _send_resend(recipient: str, subject: str, html_body: str, extra_attachments: list | None = None) -> bool:
         if not resend_key:
             return False
+        attachments_list = [
+            {
+                "filename": "consultation.ics",
+                "content": b64_ics,
+            }
+        ]
+        if extra_attachments:
+            attachments_list.extend(extra_attachments)
+
         payload = {
             "from": from_email,
             "to": [recipient],
             "subject": subject,
             "html": html_body,
-            "attachments": [
-                {
-                    "filename": "consultation.ics",
-                    "content": b64_ics,
-                }
-            ],
+            "attachments": attachments_list,
         }
         req = urllib.request.Request(
             "https://api.resend.com/emails",
@@ -393,18 +439,18 @@ async def send_appointment_emails(
             ssl_ctx = ssl._create_unverified_context()
 
         try:
-            with urllib.request.urlopen(req, timeout=10, context=ssl_ctx) as resp:
+            with urllib.request.urlopen(req, timeout=12, context=ssl_ctx) as resp:
                 logger.info("Resend successfully sent to %s (status: %s)", recipient, resp.status)
                 return True
         except urllib.error.URLError:
-            with urllib.request.urlopen(req, timeout=10, context=ssl._create_unverified_context()) as resp:
+            with urllib.request.urlopen(req, timeout=12, context=ssl._create_unverified_context()) as resp:
                 logger.info("Resend sent to %s (unverified SSL, status: %s)", recipient, resp.status)
                 return True
 
-    # 1. Send Doctor Email (Doctor Voice) -> to DOCTOR_TEST_EMAIL
+    # 1. Send Doctor Email (Doctor Voice + Uploaded Patient Reports) -> to DOCTOR_TEST_EMAIL
     doctor_sent = False
     try:
-        doctor_sent = _send_resend(DOCTOR_TEST_EMAIL, doctor_subject, doctor_html)
+        doctor_sent = _send_resend(DOCTOR_TEST_EMAIL, doctor_subject, doctor_html, extra_attachments=report_attachments)
     except Exception as exc:
         logger.warning("Failed to send doctor email to %s: %s", DOCTOR_TEST_EMAIL, exc)
 
