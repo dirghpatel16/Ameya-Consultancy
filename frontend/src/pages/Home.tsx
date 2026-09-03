@@ -13,7 +13,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -298,22 +297,26 @@ export default function Home() {
       </header>
 
       <main id="top">
-        <section className="relative flex min-h-[calc(100svh-2.5rem)] items-end overflow-hidden bg-[#164D59] px-5 pb-20 pt-40 sm:px-8 lg:px-12 lg:pb-24" data-testid="hero-section">
-          <img src="https://images.unsplash.com/photo-1758691462651-611d730c5272?auto=format&fit=crop&w=2200&q=85" alt="A warm, attentive healthcare consultation" className="absolute inset-0 h-full w-full object-cover object-center" data-testid="hero-doctor-image" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#123F48]/90 via-[#123F48]/55 to-[#123F48]/10" aria-hidden="true" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#123F48]/55 to-transparent" aria-hidden="true" />
-          <div className="relative z-10 mx-auto grid w-full max-w-7xl items-end gap-10 lg:grid-cols-[1fr_0.45fr]">
-            <Reveal className="max-w-3xl">
-              <div className="mb-7 inline-flex items-center gap-2 rounded-full bg-[#F6D776] px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#164D59]" data-testid="hero-trust-pill"><Sparkles className="size-3.5" /> Care that feels personal</div>
-              <h1 className="max-w-3xl font-sans text-5xl font-semibold leading-[0.98] tracking-[-0.045em] text-white sm:text-7xl lg:text-[6.7rem]" data-testid="hero-heading">Her health, <em className="font-serif font-normal text-[#F6D776]">in her hands.</em></h1>
-              <p className="mt-7 max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl" data-testid="hero-description">A private, thoughtful place to talk with <strong className="font-semibold text-white">Dr. Nisha Ghelani</strong>, MD (Ob & Gyn), and move forward with clarity.</p>
+        <section className="relative min-h-[calc(100svh-2.5rem)] overflow-hidden bg-[#F4F1E8] px-5 pb-16 pt-40 sm:px-8 lg:px-12 lg:pb-20" data-testid="hero-section">
+          <div className="absolute right-0 top-0 hidden h-full w-[39%] bg-[#0E776C] lg:block" aria-hidden="true" />
+          <div className="absolute -left-28 bottom-[-12rem] size-[28rem] rounded-full border-[1.5rem] border-[#E9B8AA]/60" aria-hidden="true" />
+          <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+            <Reveal className="relative z-10 max-w-2xl">
+              <div className="mb-8 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-[#0E776C]" data-testid="hero-trust-pill"><span className="h-px w-10 bg-[#E07A5F]" /> Women’s health, personally held</div>
+              <h1 className="max-w-2xl font-sans text-5xl font-medium leading-[0.96] tracking-[-0.055em] text-[#164D59] sm:text-7xl lg:text-[6.4rem]" data-testid="hero-heading">Care for every <span className="font-serif font-normal italic text-[#E07A5F]">stage</span> of womanhood.</h1>
+              <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#35504D] sm:text-xl" data-testid="hero-description">A calm, confidential place to ask the questions that change as you do—with <strong className="font-semibold text-[#164D59]">Dr. Nisha Ghelani</strong>, MD (Ob & Gyn), and 22 years of experience.</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Button onClick={scrollToBooking} className="h-13 rounded-sm bg-[#F6D776] px-6 text-base font-bold text-[#164D59] shadow-[0_14px_30px_rgba(10,35,39,0.25)] hover:-translate-y-0.5 hover:bg-[#FFE49A]" data-testid="hero-book-button">Find your care pathway <ArrowRight className="ml-2 size-4" /></Button>
-                <a href="#care" className="inline-flex h-13 items-center justify-center rounded-sm border border-white/60 bg-white/5 px-6 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-[#164D59]" data-testid="hero-care-link">Explore care pathways</a>
+                <Button onClick={scrollToBooking} className="h-13 rounded-sm bg-[#0E776C] px-6 text-base font-bold text-white shadow-[0_12px_24px_rgba(14,119,108,0.18)] hover:-translate-y-0.5 hover:bg-[#095D54]" data-testid="hero-book-button">Start your conversation <ArrowRight className="ml-2 size-4" /></Button>
+                <a href="#care" className="inline-flex h-13 items-center justify-center rounded-sm border border-[#9EB9AD] px-6 text-base font-semibold text-[#164D59] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0E776C] hover:bg-white" data-testid="hero-care-link">See the care pathways</a>
               </div>
-              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/80" data-testid="hero-contact-strip"><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-[#F6D776]" /> Confidential by design</span><span className="flex items-center gap-2"><Clock3 className="size-4 text-[#F6D776]" /> Tue · Thu · Sat</span></div>
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#C9D3C6] pt-5 text-sm text-[#52706B]" data-testid="hero-contact-strip"><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-[#0E776C]" /> Confidential by design</span><span className="flex items-center gap-2"><Clock3 className="size-4 text-[#0E776C]" /> Tue · Thu · Sat</span></div>
             </Reveal>
-            <Reveal className="hidden lg:block" delay={0.12}><div className="border-l border-white/35 pl-7 text-white" data-testid="hero-side-note"><p className="font-mono text-xs uppercase tracking-[0.18em] text-[#F6D776]">Ameya Consultancy</p><p className="mt-4 max-w-[13rem] font-serif text-3xl leading-tight">Twenty-two years of listening.</p><div className="mt-8 flex items-center gap-3 text-xs text-white/75"><span className="flex size-8 items-center justify-center rounded-full bg-white/15"><HeartHandshake className="size-4" /></span> Her Health Connect</div></div></Reveal>
+            <Reveal className="relative min-h-[34rem] sm:min-h-[38rem] lg:min-h-[42rem]" delay={0.12}>
+              <div className="absolute right-[7%] top-0 h-[78%] w-[66%] overflow-hidden rounded-t-[13rem] rounded-b-sm border-[10px] border-[#F4F1E8] bg-[#D7E5D7] shadow-[0_24px_50px_rgba(0,54,49,0.18)]" data-testid="hero-doctor-card"><img src="https://images.pexels.com/photos/6749765/pexels-photo-6749765.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Female doctor ready to listen in a bright clinic" className="h-full w-full object-cover object-[50%_20%]" data-testid="hero-doctor-image" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#164D59]/85 to-transparent p-6 pt-20 text-white"><p className="font-serif text-2xl" data-testid="hero-doctor-name">Dr. Nisha Ghelani</p><p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/75" data-testid="hero-doctor-credential">MD (Ob & Gyn) · 22 years</p></div></div>
+              <div className="absolute bottom-[2%] left-[2%] size-44 overflow-hidden rounded-full border-[10px] border-[#F4F1E8] bg-[#E9B8AA] shadow-[0_16px_35px_rgba(0,54,49,0.18)] sm:size-56" data-testid="hero-womanhood-image"><img src="https://images.unsplash.com/photo-1702788177324-3a4925d4f4cf?auto=format&fit=crop&w=700&q=85" alt="Mother and baby during postnatal care" className="h-full w-full object-cover" /></div>
+              <div className="absolute left-0 top-[17%] max-w-[11rem] bg-[#F6D776] p-5 text-[#164D59] shadow-[0_14px_30px_rgba(0,54,49,0.14)]" data-testid="hero-stage-card"><p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em]">Every stage</p><p className="mt-3 font-serif text-2xl leading-tight">First periods to menopause.</p></div>
+              <div className="absolute bottom-[9%] right-0 hidden max-w-[13rem] border border-white/45 bg-[#003F3A] p-5 text-white shadow-[0_14px_30px_rgba(0,54,49,0.18)] sm:block" data-testid="hero-experience-card"><p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#F6D776]">Her Health Connect</p><p className="mt-3 font-serif text-2xl leading-tight">22 years of listening.</p><div className="mt-5 flex items-center gap-2 text-xs text-white/70"><HeartHandshake className="size-4 text-[#F6D776]" /> A space to be heard</div></div>
+            </Reveal>
           </div>
         </section>
 
