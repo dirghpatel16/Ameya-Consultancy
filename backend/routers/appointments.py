@@ -19,7 +19,7 @@ AVAILABLE_TIMES = [
 ]
 LEGACY_TIME_PREFERENCES = {"Morning preference", "Afternoon preference", "Evening preference"}
 ALLOWED_ATTACHMENT_TYPES = {"application/pdf", "image/jpeg", "image/png"}
-MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
+MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024
 
 
 def validate_requested_date(value: str) -> None:
@@ -70,7 +70,7 @@ async def upload_appointment_attachment(file: UploadFile = File(...)) -> Appoint
     content = await file.read(MAX_ATTACHMENT_BYTES + 1)
     await file.close()
     if len(content) > MAX_ATTACHMENT_BYTES:
-        raise HTTPException(status_code=413, detail="Each attachment must be 10 MB or smaller.")
+        raise HTTPException(status_code=413, detail="Each attachment must be 4 MB or smaller.")
     if not content:
         raise HTTPException(status_code=422, detail="The selected attachment is empty.")
 

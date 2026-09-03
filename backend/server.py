@@ -19,7 +19,10 @@ from lib.db import client, db
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    client.close()
+    try:
+        client.close()
+    except Exception:
+        pass
 
 
 # Create the main app without a prefix
@@ -39,13 +42,24 @@ api_router.include_router(appointments_router)
 # Include the router in the main app
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_origins_raw = os.environ.get('CORS_ORIGINS', '*')
+cors_origins = [origin.strip() for origin in cors_origins_raw.split(',') if origin.strip()]
+if '*' in cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=['*'],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Configure logging
 logging.basicConfig(
