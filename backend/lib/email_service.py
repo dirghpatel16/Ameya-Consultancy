@@ -330,7 +330,8 @@ async def send_appointment_emails(
                     logger.info("Email dispatched via Resend to %s (unverified SSL, status: %s)", clean_recipients, resp.status)
                     return True
 
-        # First attempt: send to both patient and doctor
+        # First attempt: send to both patient and doctor via Resend
+        patient_delivered_resend = False
         try:
             _dispatch_resend([patient_email, DOCTOR_TEST_EMAIL])
             return True
@@ -340,7 +341,6 @@ async def send_appointment_emails(
             try:
                 _dispatch_resend([DOCTOR_TEST_EMAIL])
                 logger.info("Resend successfully delivered to verified test email %s", DOCTOR_TEST_EMAIL)
-                return True
             except Exception as retry_exc:
                 logger.error("Resend retry failed: %s", retry_exc)
         except Exception as exc:

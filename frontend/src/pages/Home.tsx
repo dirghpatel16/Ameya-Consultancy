@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Clock3,
   FileText,
+  Globe,
   HeartHandshake,
   Mail,
   MessageCircle,
@@ -192,8 +193,52 @@ function Reveal({ children, className = "", delay = 0 }: { children: ReactNode; 
   );
 }
 
+function getSlotInUserTimezone(dateStr: string, istTime: string, userTz: string) {
+  const [timePart, meridiem] = istTime.split(" ");
+  const [hStr, mStr] = timePart.split(":");
+  let hour = parseInt(hStr, 10);
+  if (meridiem === "PM" && hour !== 12) hour += 12;
+  if (meridiem === "AM" && hour === 12) hour = 0;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const dateBase = dateStr || new Date().toISOString().split("T")[0];
+  const isoIst = `${dateBase}T${pad(hour)}:${pad(parseInt(mStr, 10))}:00+05:30`;
+  const dateObj = new Date(isoIst);
+
+  if (Number.isNaN(dateObj.getTime())) {
+    return { localTime: istTime, dateShift: "" };
+  }
+
+  try {
+    const timeFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: userTz,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    const localTime = timeFormatter.format(dateObj);
+
+    const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: userTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const localDateStr = dateFormatter.format(dateObj);
+    let dateShift = "";
+    if (dateStr && localDateStr !== dateStr) {
+      const dayDiff = (new Date(localDateStr).getTime() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24);
+      if (dayDiff < -0.5) dateShift = "Prev Day";
+      else if (dayDiff > 0.5) dateShift = "Next Day";
+    }
+    return { localTime, dateShift };
+  } catch {
+    return { localTime: istTime, dateShift: "" };
+  }
+}
+
 function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
   const testId = (name: string) => `${testIdPrefix}-${name}`;
+  const userTimeZone = typeof Intl !== "undefined" && Intl.DateTimeFormat ? Intl.DateTimeFormat().resolvedOptions().timeZone : "Asia/Kolkata";
   const [form, setForm] = useState<AppointmentCreate>(initialForm);
   const [dateError, setDateError] = useState("");
   const [calendarIndex, setCalendarIndex] = useState(0);
@@ -473,30 +518,67 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
 
       {/* Time Selection */}
       <fieldset className="space-y-3 border-t border-[#E5DEC9] pt-6" data-testid={testId("time-section")}>
-        <div className="flex items-center justify-between">
-          <legend className="font-serif text-lg sm:text-xl text-[#164D59]">Choose a time slot</legend>
-          <span className="text-[11px] text-[#839788]">India time (IST) · 8–10 AM & 4–6 PM</span>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <legend className="font-serif text-lg sm:text-xl text-[#164D59]">Choose a consultation time</legend>
+            <p className="mt-0.5 text-xs text-[#52706B]">
+              Dr. Nisha’s Clinic Hours: <strong>8:00 AM–10:00 AM & 4:00 PM–6:00 PM (IST)</strong>
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#B8DAD2] bg-[#EAF2F1] px-3 py-1 text-[11px] font-semibold text-[#0E776C]">
+            <Globe className="size-3.5" />
+            <span>{userTimeZone === "Asia/Kolkata" ? "India Standard Time (IST)" : `Your Time: ${userTimeZone}`}</span>
+          </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+
+        {userTimeZone !== "Asia/Kolkata" && (
+          <div className="rounded-xl border border-[#B8DAD2] bg-[#F4F9F8] p-3 text-xs text-[#35504D]">
+            <p className="font-semibold text-[#164D59] flex items-center gap-1.5">
+              <Clock3 className="size-3.5 text-[#0E776C]" /> Times automatically converted to your local time
+            </p>
+            <p className="mt-1 text-[11px] text-[#52706B] leading-relaxed">
+              Dr. Nisha conducts consultations from Gujarat, India. Each slot below displays your exact local time prominently, followed by the doctor’s India time.
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {(bookingOptions.data?.available_times ?? [
             "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM",
             "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
-          ]).map((time) => (
-            <button
-              key={time}
-              type="button"
-              aria-pressed={form.preferred_time === time}
-              onClick={() => setForm((current) => ({ ...current, preferred_time: time }))}
-              className={`min-h-10 rounded-xl border px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                form.preferred_time === time
-                  ? "border-[#0E776C] bg-[#0E776C] text-white shadow-sm font-bold"
-                  : "border-[#D9DFD4] bg-white text-[#52706B] hover:border-[#0E776C]"
-              }`}
-              data-testid={testId(`time-${time.replace(/[: ]/g, "-").toLowerCase()}`)}
-            >
-              {time}
-            </button>
-          ))}
+          ]).map((time) => {
+            const { localTime, dateShift } = getSlotInUserTimezone(form.preferred_date, time, userTimeZone);
+            const isSelected = form.preferred_time === time;
+            const isDifferentTz = userTimeZone !== "Asia/Kolkata";
+
+            return (
+              <button
+                key={time}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setForm((current) => ({ ...current, preferred_time: time }))}
+                className={`min-h-12 rounded-xl border p-2 text-center transition-all duration-200 ${
+                  isSelected
+                    ? "border-[#0E776C] bg-[#0E776C] text-white shadow-md font-bold"
+                    : "border-[#D9DFD4] bg-white text-[#263D3A] hover:border-[#0E776C]"
+                }`}
+                data-testid={testId(`time-${time.replace(/[: ]/g, "-").toLowerCase()}`)}
+              >
+                <span className="block text-xs sm:text-sm font-bold">
+                  {isDifferentTz ? localTime : time}
+                </span>
+                {isDifferentTz ? (
+                  <span className={`mt-0.5 block text-[10px] ${isSelected ? "text-white/80" : "text-[#52706B]"}`}>
+                    {time} IST {dateShift ? `· ${dateShift}` : ""}
+                  </span>
+                ) : (
+                  <span className={`mt-0.5 block text-[10px] ${isSelected ? "text-white/80" : "text-[#839788]"}`}>
+                    India (IST)
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </fieldset>
 
@@ -634,6 +716,10 @@ export default function Home() {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [confirmedAppointment, setConfirmedAppointment] = useState<Appointment | null>(null);
+  const userTimeZone = typeof Intl !== "undefined" && Intl.DateTimeFormat ? Intl.DateTimeFormat().resolvedOptions().timeZone : "Asia/Kolkata";
+  const localSlotInfo = confirmedAppointment
+    ? getSlotInUserTimezone(confirmedAppointment.preferred_date, confirmedAppointment.preferred_time, userTimeZone)
+    : null;
   const activeArea = focusAreas.find((area) => area.id === activeFocus) ?? focusAreas[0];
 
   const openBooking = () => setBookingOpen(true);
@@ -770,9 +856,14 @@ export default function Home() {
                   {confirmedAppointment?.consultation_type === "video_consultation" ? "Virtual Call" : "Clinic Visit"}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#F0ECE1] pt-3 text-xs text-[#52706B]">
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-[#F0ECE1] pt-3 text-xs text-[#52706B]">
                 <div><strong className="text-[#164D59]">Date:</strong> {confirmedAppointment?.preferred_date}</div>
-                <div><strong className="text-[#164D59]">Time:</strong> {confirmedAppointment?.preferred_time} (IST)</div>
+                <div><strong className="text-[#164D59]">Time (India IST):</strong> {confirmedAppointment?.preferred_time}</div>
+                {userTimeZone !== "Asia/Kolkata" && localSlotInfo && (
+                  <div className="sm:col-span-2 rounded-lg bg-[#F4F9F8] p-2 border border-[#B8DAD2] text-[11px] text-[#0E776C] font-medium">
+                    📍 <strong>Your Local Time:</strong> {localSlotInfo.localTime} ({userTimeZone}) {localSlotInfo.dateShift ? `· ${localSlotInfo.dateShift}` : ""}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -780,46 +871,44 @@ export default function Home() {
             <div className="rounded-2xl border border-[#B8DAD2] bg-[#EAF2F1] p-4 space-y-2.5" data-testid="confirmation-status-card">
               <div className="flex items-center gap-2 text-[#0E776C] font-bold text-xs sm:text-sm">
                 <Check className="size-4" />
-                <span>Confirmation Dispatched</span>
+                <span>Confirmation Dispatched to Email</span>
               </div>
               <p className="text-xs text-[#35504D] leading-relaxed">
                 {confirmedAppointment?.consultation_type === "video_consultation"
-                  ? "Your Google Meet link and interactive calendar invite have been sent directly to your email and WhatsApp."
-                  : "Your clinic visit confirmation and location directions have been sent directly to your email and WhatsApp."}
+                  ? "Your Google Meet link and official calendar invitation (.ics) have been dispatched directly to your email."
+                  : "Your clinic visit confirmation and directions have been dispatched directly to your email."}
               </p>
               <div className="rounded-xl bg-white/90 p-2.5 border border-[#B8DAD2] text-[11px] text-[#52706B] space-y-1">
                 <p className="flex items-center gap-1.5 font-semibold text-[#164D59]">
                   <Mail className="size-3.5 text-[#0E776C]" /> Email: <span className="font-normal text-[#35504D] break-all">{confirmedAppointment?.email}</span>
                 </p>
-                <p className="flex items-center gap-1.5 font-semibold text-[#164D59]">
-                  <Phone className="size-3.5 text-[#0E776C]" /> WhatsApp: <span className="font-normal text-[#35504D]">{confirmedAppointment?.phone}</span>
+                <p className="text-[10px] text-[#839788] pt-0.5">
+                  Your calendar invite (.ics) automatically converts this consultation to your local timezone when you open or accept it in Gmail or Apple Calendar.
                 </p>
               </div>
             </div>
 
-            {/* Action Buttons: Add to Google Calendar & Send Confirmation to WhatsApp */}
+            {/* Action Buttons: Add to Google Calendar & Done */}
             <div className="space-y-2 pt-1">
               {confirmedAppointment?.calendar_url && (
                 <a
                   href={confirmedAppointment.calendar_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#D9DFD4] bg-white text-xs font-bold text-[#164D59] shadow-sm hover:bg-[#F4F1E8] transition-colors"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0E776C] text-xs font-bold text-white shadow-sm hover:bg-[#095D54] transition-colors"
                 >
-                  <Calendar className="size-4 text-[#0E776C]" /> Add to Google Calendar
+                  <Calendar className="size-4" /> Add to Google Calendar
                 </a>
               )}
 
-              {confirmedAppointment?.whatsapp_url && (
-                <a
-                  href={confirmedAppointment.whatsapp_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] text-xs font-bold text-white shadow-sm hover:bg-[#1EBE5D] transition-colors"
-                >
-                  <MessageCircle className="size-4" /> Open Details on WhatsApp
-                </a>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setConfirmationOpen(false)}
+                className="h-10 w-full rounded-xl border-[#D9DFD4] text-xs font-bold text-[#164D59] hover:bg-[#F4F1E8]"
+              >
+                Done
+              </Button>
             </div>
           </div>
         </DialogContent>
