@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -41,6 +42,17 @@ api_router.include_router(appointments_router)
 
 # Include the router in the main app
 app.include_router(api_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    import traceback
+    tb = traceback.format_exc()
+    logger.error("Unhandled error: %s\n%s", exc, tb)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "type": type(exc).__name__, "traceback": tb}
+    )
 
 cors_origins_raw = os.environ.get('CORS_ORIGINS', '*')
 cors_origins = [origin.strip() for origin in cors_origins_raw.split(',') if origin.strip()]
