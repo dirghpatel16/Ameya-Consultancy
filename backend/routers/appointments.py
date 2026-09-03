@@ -11,6 +11,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from lib.dates import today_iso
 from lib.db import db
 from lib.email_service import build_google_calendar_url, build_whatsapp_message, send_appointment_emails
+from lib.calendar_service import create_calendar_event_with_meet
 from models.appointments import Appointment, AppointmentAttachment, AppointmentCreate, AvailableDate, BookingOptions
 
 logger = logging.getLogger(__name__)
@@ -107,8 +108,27 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
             raise HTTPException(status_code=422, detail="One or more attachments could not be found.")
     reference = f"AMY-{secrets.token_hex(3).upper()}"
     is_virtual = payload.consultation_type == "video_consultation"
-    default_meet = os.environ.get("PERMANENT_MEET_URL") or f"https://meet.google.com/amy-{reference.lower().replace('amy-', '')}-{secrets.token_hex(2)}"
-    meeting_url = default_meet if is_virtual else None
+    meeting_url = None
+
+    if is_virtual:
+        try:
+            meet_uri, _ = create_calendar_event_with_meet(
+                patient_name=payload.full_name,
+                patient_email=payload.email,
+                patient_phone=payload.phone,
+                preferred_date=payload.preferred_date,
+                preferred_time=payload.preferred_time,
+                focus_area=payload.focus_area,
+                reference=reference,
+                notes=payload.notes,
+            )
+            if meet_uri:
+                meeting_url = meet_uri
+        except Exception as exc:
+            logger.warning("Dynamic Google Calendar/Meet creation failed, using fallback: %s", exc)
+
+        if not meeting_url:
+            meeting_url = os.environ.get("PERMANENT_MEET_URL") or f"https://meet.google.com/amy-{reference.lower().replace('amy-', '')}-{secrets.token_hex(2)}"
 
     calendar_url = build_google_calendar_url(
         patient_name=payload.full_name,
