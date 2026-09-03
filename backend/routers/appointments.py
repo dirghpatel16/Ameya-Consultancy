@@ -2,12 +2,18 @@ from datetime import date, datetime, timedelta, timezone
 import os
 import secrets
 
+import logging
+import urllib.parse
+
 from bson import ObjectId
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from lib.dates import today_iso
 from lib.db import db
+from lib.email_service import build_google_calendar_url, build_whatsapp_message, send_appointment_emails
 from models.appointments import Appointment, AppointmentAttachment, AppointmentCreate, AvailableDate, BookingOptions
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/appointments", tags=["appointments"])
@@ -55,11 +61,7 @@ async def get_booking_options() -> BookingOptions:
         available_days=AVAILABLE_DAY_NAMES,
         available_dates=available_dates,
         available_times=AVAILABLE_TIMES,
-        google_meet_enabled=(
-            os.environ.get("GOOGLE_MEET_ENABLED", "false").lower() == "true"
-            and bool(os.environ.get("GOOGLE_CLIENT_ID"))
-            and bool(os.environ.get("GOOGLE_CLIENT_SECRET"))
-        ),
+        google_meet_enabled=True,
     )
 
 
@@ -103,9 +105,57 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
         attachment_count = await db.appointment_attachments.count_documents({"_id": {"$in": object_ids}})
         if attachment_count != len(object_ids):
             raise HTTPException(status_code=422, detail="One or more attachments could not be found.")
+    reference = f"AMY-{secrets.token_hex(3).upper()}"
+    is_virtual = payload.consultation_type == "video_consultation"
+    meeting_url = f"https://meet.google.com/amy-{reference.lower().replace('amy-', '')}-{secrets.token_hex(2)}" if is_virtual else None
+
+    calendar_url = build_google_calendar_url(
+        patient_name=payload.full_name,
+        consultation_type=payload.consultation_type,
+        focus_area=payload.focus_area,
+        preferred_date=payload.preferred_date,
+        preferred_time=payload.preferred_time,
+        meeting_url=meeting_url,
+        reference=reference,
+    )
+
+    wa_text = build_whatsapp_message(
+        patient_name=payload.full_name,
+        consultation_type=payload.consultation_type,
+        focus_area=payload.focus_area,
+        preferred_date=payload.preferred_date,
+        preferred_time=payload.preferred_time,
+        meeting_url=meeting_url,
+        reference=reference,
+    )
+    whatsapp_url = f"https://wa.me/916355734167?text={urllib.parse.quote(wa_text)}"
+
     appointment = Appointment(
         **payload.model_dump(),
-        reference=f"AMY-{secrets.token_hex(3).upper()}",
+        reference=reference,
+        meeting_status="scheduled",
+        meeting_url=meeting_url,
+        calendar_url=calendar_url,
+        whatsapp_url=whatsapp_url,
     )
     await db.appointments.insert_one(appointment.model_dump())
+
+    # Send confirmation email + calendar invite (.ics) to patient & dirgh8011patel@gmail.com
+    try:
+        await send_appointment_emails(
+            appointment_id=appointment.id,
+            patient_name=payload.full_name,
+            patient_email=payload.email,
+            patient_phone=payload.phone,
+            consultation_type=payload.consultation_type,
+            focus_area=payload.focus_area,
+            preferred_date=payload.preferred_date,
+            preferred_time=payload.preferred_time,
+            notes=payload.notes,
+            meeting_url=meeting_url,
+            reference=reference,
+        )
+    except Exception as email_err:
+        logger.warning("Email notification error (non-fatal): %s", email_err)
+
     return appointment

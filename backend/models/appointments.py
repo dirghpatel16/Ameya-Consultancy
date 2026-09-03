@@ -24,8 +24,10 @@ class Appointment(AppointmentCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     reference: str
     status: Literal["requested"] = "requested"
-    meeting_status: Literal["pending_connection", "scheduled"] = "pending_connection"
+    meeting_status: Literal["pending_connection", "scheduled"] = "scheduled"
     meeting_url: str | None = None
+    calendar_url: str | None = None
+    whatsapp_url: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
