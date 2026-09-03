@@ -4,6 +4,7 @@
 Public consultation website for Ameya Consultancy / Her Health Connect, a solo women's health practice led by Dr. Nisha Ghelani, MD (Ob & Gyn), with 22 years of experience.
 
 ## Core flow
+- The visual experience uses a Maven-inspired editorial rhythm without copying its branding: announcement strip, floating white navigation, full-bleed photo hero, colorful care cards, and alternating campaign-like content blocks.
 - Visitors learn about Dr. Nisha's philosophy and care pathways.
 - The care pathway tabs cover antenatal care, postnatal recovery, puberty/adolescent health, menopause, and expert report opinion.
 - Visitors request a consultation through an on-site form. Eligible days are Tuesday, Thursday, and Saturday; Monday, Wednesday, Friday, and Sunday are closed.

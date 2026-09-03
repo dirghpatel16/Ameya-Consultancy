@@ -52,38 +52,38 @@
 }
 
 :root {
-  --background: #faf8f5;
-  --foreground: #2b2d42;
+  --background: #fffdf8;
+  --foreground: #263d3a;
   --card: #ffffff;
   --card-foreground: #2b2d42;
   --popover: #ffffff;
   --popover-foreground: #2b2d42;
-  --primary: #114b5f;
+  --primary: #0e776c;
   --primary-foreground: #ffffff;
   --secondary: #f4f0ea;
-  --secondary-foreground: #114b5f;
-  --muted: #f4f0ea;
-  --muted-foreground: #5c6479;
+  --secondary-foreground: #164d59;
+  --muted: #f4f1e8;
+  --muted-foreground: #52706b;
   --accent: #e07a5f;
   --accent-foreground: #ffffff;
   --destructive: #b84f3a;
-  --border: #e5dec9;
-  --input: #e5dec9;
-  --ring: #114b5f;
+  --border: #d9dfd4;
+  --input: #d9dfd4;
+  --ring: #0e776c;
   --chart-1: #114b5f;
   --chart-2: #e07a5f;
   --chart-3: #839788;
   --chart-4: #f2e8e5;
   --chart-5: #2b2d42;
   --radius: 0.75rem;
-  --sidebar: #faf8f5;
-  --sidebar-foreground: #2b2d42;
-  --sidebar-primary: #114b5f;
+  --sidebar: #fffdf8;
+  --sidebar-foreground: #263d3a;
+  --sidebar-primary: #0e776c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f4f0ea;
-  --sidebar-accent-foreground: #114b5f;
-  --sidebar-border: #e5dec9;
-  --sidebar-ring: #114b5f;
+  --sidebar-accent: #f4f1e8;
+  --sidebar-accent-foreground: #164d59;
+  --sidebar-border: #d9dfd4;
+  --sidebar-ring: #0e776c;
 }
 
 .dark {
@@ -112,7 +112,7 @@
   html { @apply font-sans; scroll-behavior: smooth; }
   body { @apply bg-background text-foreground; }
   button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-  :focus-visible { @apply outline-none ring-2 ring-[#114B5F] ring-offset-2 ring-offset-[#FAF8F5]; }
+  :focus-visible { @apply outline-none ring-2 ring-[#0E776C] ring-offset-2 ring-offset-[#FFFDF8]; }
 }
 
 @keyframes gentle-float {
