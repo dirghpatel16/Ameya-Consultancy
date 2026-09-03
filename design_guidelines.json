@@ -1,0 +1,146 @@
+{
+  "project_info": {
+    "business_name": "Ameya Consultancy",
+    "tagline": "Her Health Connect",
+    "doctor_name": "Dr. Nisha Ghelani",
+    "credentials": "MD (Ob & Gyn)",
+    "experience_years": 22,
+    "email": "nishaghelani78@gmail.com",
+    "phone": "+91 6355734167",
+    "weekly_cadence": {
+      "tuesday": "By Appointment Only",
+      "thursday": "By Appointment Only",
+      "saturday": "By Appointment Only",
+      "monday": "Closed",
+      "wednesday": "Closed",
+      "friday": "Closed",
+      "sunday": "Closed"
+    },
+    "clinical_focus_areas": [
+      {
+        "id": "antenatal",
+        "title": "Antenatal Care & High-Risk Pregnancy",
+        "description": "Comprehensive journey tracking, trimester guidance, personalized prenatal plans, fetal health monitoring, and supportive maternal counseling."
+      },
+      {
+        "id": "postnatal",
+        "title": "Postnatal Recovery & Lactation Support",
+        "description": "Holistic postpartum wellness, pelvic floor recovery, newborn transition guidance, emotional health assessment, and breast care support."
+      },
+      {
+        "id": "puberty",
+        "title": "Adolescent Health & Puberty Counseling",
+        "description": "Sensitive, confidential guidance for young women navigating hormonal shifts, menstrual health, PCOS, and body awareness."
+      },
+      {
+        "id": "menopause",
+        "title": "Perimenopause & Menopause Management",
+        "description": "Tailored HRT guidance, bone health strategies, mood elevation, lifestyle therapy, and symptom relief throughout the menopausal transition."
+      },
+      {
+        "id": "expert-opinion",
+        "title": "Second Medical Opinion & Diagnostic Review",
+        "description": "Thorough, compassionate review of ultrasound scans, lab reports, surgical proposals, and complex gynecology diagnoses with 22+ years of insight."
+      }
+    ]
+  },
+  "aesthetic_archetype": {
+    "name": "Warm Editorial Healthcare",
+    "vibe": "Warm, tactile, empathetic, dignified, authoritative without cold clinical friction",
+    "inspiration_sources": ["Tia Healthcare", "One Medical", "Maven Clinic", "Oura Ring"],
+    "design_principles": [
+      "Tactile Warmth over Clinical Coldness: Ivory backgrounds, deep teal structure, muted coral accents",
+      "Generous Whitespace: 2x-3x standard padding to let emotionally sensitive content breathe",
+      "Editorial Hierarchy: Serif headings paired with ultra-legible humanist sans-serif body text",
+      "Calm Motion: Soft 0.3s cubic-bezier reveals and smooth tab transitions, strictly respecting reduced motion",
+      "Trust & Transparency: Explicit 22-year credentialing badges, direct contact links, and clear availability cadences"
+    ]
+  },
+  "typography": {
+    "heading_font": "Playfair Display, serif",
+    "body_font": "Plus Jakarta Sans, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "font_imports": "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+    "hierarchy": {
+      "h1_hero": "text-4xl sm:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.15]",
+      "h2_section": "text-2xl sm:text-3xl lg:text-4xl font-serif tracking-tight leading-snug",
+      "h3_card": "text-xl sm:text-2xl font-serif font-medium leading-snug",
+      "h4_sub": "text-lg sm:text-xl font-sans font-semibold",
+      "body_lg": "text-lg sm:text-xl font-sans font-normal leading-relaxed",
+      "body": "text-base font-sans font-normal leading-relaxed",
+      "small_label": "text-xs font-sans font-semibold uppercase tracking-[0.2em]"
+    }
+  },
+  "colors": {
+    "base_background": "#FAF8F5",
+    "surface_card": "#FFFFFF",
+    "surface_tinted": "#F4F0EA",
+    "primary_dark": "#114B5F",
+    "primary_teal": "#1A5E72",
+    "accent_coral": "#E07A5F",
+    "accent_sage": "#839788",
+    "accent_soft_rose": "#F2E8E5",
+    "text_main": "#2B2D42",
+    "text_muted": "#5C6479",
+    "border_subtle": "#E5DEC9",
+    "status": {
+      "open_badge": "bg-emerald-50 text-emerald-800 border-emerald-200",
+      "closed_badge": "bg-stone-100 text-stone-600 border-stone-200",
+      "appointment_badge": "bg-amber-50 text-amber-900 border-amber-200"
+    }
+  },
+  "layouts_and_grids": {
+    "hero_section": "Asymmetric editorial split: Left column (60%) with typography, trust pill, quote, and instant CTA; Right column (40%) with overlapping framed doctor portrait, experience badge, and quick schedule widget.",
+    "profile_section": "Dual-column narrative: Dr. Nisha Ghelani story, 22-year timeline stats grid (22+ Years Experience, 15,000+ Patient Consults, 100% Confidential Care), philosophy callout in soft tinted canvas.",
+    "clinical_care_pathways": "Tabbed interactive grid with tab switches for Antenatal, Postnatal, Puberty, Menopause, and Diagnostic Review. Each tab displays clinical rationale, key symptoms addressed, and direct 'Book pathway' action.",
+    "booking_engine": "Multi-step interactive schedule wizard on-site with date picker (restricting to Tue/Thu/Sat), time slot picker, consultation type toggle (Clinic Visit / Video Consultation / Diagnostic Second Opinion), patient detail form, and immediate saved request state with confirmation modal + contact fallback details.",
+    "weekly_cadence": "Visual weekly calendar grid highlighting Tue, Thu, Sat active appointment windows, closed days clearly specified with polite advance scheduling notes.",
+    "patient_faq": "Accordion system addressing privacy, report review procedure, appointment preparation, and payment/cancellation guidance.",
+    "statutory_notice": "High contrast emergency caveat footer banner clarifying that elective consultation is not for acute obstetric emergencies."
+  },
+  "mobile_ergonomics": {
+    "sticky_quick_action_bar": "Fixed bottom bar on mobile (< 768px) with 'Call Doctor' quick-action button (+91 6355734167) and 'Book Consultation' bottom sheet trigger.",
+    "touch_targets": "Minimum 48px height on all buttons, select inputs, and interactive badges.",
+    "bottom_sheet": "Responsive schedule drawer on mobile devices with smooth drag/slide behavior."
+  },
+  "component_path": "/app/frontend/src/pages/Home.tsx",
+  "image_urls": [
+    {
+      "category": "doctor_hero_portrait",
+      "url": "https://images.pexels.com/photos/6749765/pexels-photo-6749765.jpeg",
+      "description": "Portrait of Dr. Nisha Ghelani smiling warmly with stethoscope in a clean editorial clinic background."
+    },
+    {
+      "category": "consultation_interaction",
+      "url": "https://images.unsplash.com/photo-1758691462651-611d730c5272",
+      "description": "Female doctor in white lab coat at desk listening attentively to patient concerns."
+    },
+    {
+      "category": "antenatal_maternal_care",
+      "url": "https://images.unsplash.com/photo-1749065306033-0cb90ff6e283?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHw0fHxwcmVnbmFudCUyMHdvbWFuJTIwZG9jdG9yJTIwY29uc3VsdGF0aW9uJTIwd2FybXxlbnwwfHx8fDE3ODM0NzQ3NTR8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Empathetic maternal health consultation with gentle care."
+    },
+    {
+      "category": "postnatal_lactation_care",
+      "url": "https://images.unsplash.com/photo-1702788177324-3a4925d4f4cf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwzfHxwcmVnbmFudCUyMHdvbWFuJTIwZG9jdG9yJTIwY29uc3VsdGF0aW9uJTIwd2FybXxlbnwwfHx8fDE3ODM0NzQ3NTR8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Mother with newborn during postnatal recovery review."
+    },
+    {
+      "category": "wellness_clinic_atmosphere",
+      "url": "https://images.unsplash.com/photo-1638202993928-7267aad84c31?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwxfHx3b21lbiUyMGhlYWx0aCUyMGNsaW5pYyUyMHdhcm18ZW58MHx8fHwxNzgzNjY3MjI3fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Warm healthcare tools and calm consultation atmosphere."
+    }
+  ],
+  "testing_and_accessibility": {
+    "data_testid_policy": "All interactive elements (buttons, inputs, select triggers, tab triggers, accordion buttons, modal controls, quick action bar) MUST include clear data-testid attributes (e.g. data-testid='hero-book-now-button', data-testid='booking-submit-btn', data-testid='tab-antenatal').",
+    "wcag_compliance": "WCAG 2.1 AA compliant text contrast ratios against #FAF8F5 and #FFFFFF surfaces.",
+    "keyboard_navigation": "Full focus states (ring-2 ring-[#114B5F]) on all interactive inputs and buttons."
+  },
+  "instructions_to_main_agent": [
+    "Ensure header uses backdrop blur with non-transparent background (#FAF8F5/90 with backdrop-blur-md) so text stays legible when scrolling.",
+    "Persist appointment bookings into local storage or backend API with immediate confirmation modal showing booking reference, doctor contact details, and next steps.",
+    "Implement date validation on schedule engine: disable Mon, Wed, Fri, Sun selections and enable Tue, Thu, Sat.",
+    "Include responsive mobile quick-action bar with direct telephone link (tel:+916355734167) and booking trigger.",
+    "Never use raw transparent header backgrounds or generic centered AI templates."
+  ]
+}

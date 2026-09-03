@@ -1,0 +1,3 @@
+# Ameya Consultancy — Living Spec
+
+Public women's health consultation website for Dr. Nisha Ghelani, MD (Ob & Gyn), 22 years of experience. Visitors can explore care pathways, weekly availability, FAQs, and submit a consultation request. Requests are saved to MongoDB through `POST /api/appointments`, validated for Tuesday/Thursday/Saturday availability, and confirmed with an AMY reference. No authentication or seeded accounts.
