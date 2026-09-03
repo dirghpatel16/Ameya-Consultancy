@@ -123,7 +123,33 @@
 .gentle-float { animation: gentle-float 5s ease-in-out infinite; }
 
 [data-testid="care-section"] {
-  background-color: #dcebe6;
+  background-color: #f4f1e8;
+}
+
+[data-testid="care-pathway-tabs"] {
+  gap: 0.45rem;
+  border: 1px solid #d9dfd4;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.65rem;
+  box-shadow: 0 18px 45px rgba(22, 77, 89, 0.07);
+}
+
+[data-testid^="care-tab-"] {
+  border-bottom: 0 !important;
+  border-radius: 1rem;
+  padding: 1rem !important;
+}
+
+[data-testid^="care-tab-"][aria-selected="true"] {
+  background: #0e776c;
+  color: #fff !important;
+}
+
+[data-testid="care-pathway-panel"] {
+  border-radius: 1.75rem !important;
+  border-color: rgba(14, 119, 108, 0.18) !important;
+  box-shadow: 0 24px 65px rgba(22, 77, 89, 0.1) !important;
 }
 
 [data-testid="hero-section"]::after {

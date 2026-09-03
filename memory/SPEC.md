@@ -8,15 +8,16 @@ Public consultation website for Ameya Consultancy / Her Health Connect, a solo w
 - The hero's primary promise is “Care for every stage of womanhood,” supported by a restrained editorial collage, an identity-matched Dr. Nisha portrait, calm motion, a stage card, a 20+ year trust card, and direct booking CTA.
 - Visitors learn about Dr. Nisha's philosophy and care pathways.
 - The care pathway tabs cover antenatal care, postnatal recovery, puberty/adolescent health, menopause, and expert report opinion.
-- Visitors request a consultation through an on-site form. Eligible days are Tuesday, Thursday, and Saturday; Monday, Wednesday, Friday, and Sunday are closed.
-- Booking is one spacious, visible form organized into care, schedule, and contact groups with server-anchored upcoming date suggestions.
-- Availability is shown only as compact Tue/Thu/Sat guidance and selectable dates inside booking; there is no separate cadence section.
-- The backend stores a request in MongoDB and returns a generated AMY reference. The frontend shows an immediate confirmation dialog with contact fallback details.
-- The mobile viewport has a fixed call/book quick-action bar; booking opens in a bottom-sheet style dialog.
+- Booking is never embedded in a page section. Header, hero, pathway, CTA, footer, and mobile Book actions open one responsive appointment dialog.
+- The dialog provides a calendar month view with server-anchored Tuesday/Thursday/Saturday dates and exact hourly times from 10:00 AM through 6:00 PM India time.
+- Patients can attach up to three private PDF/JPG/PNG reports, maximum 10 MB each. Attachments are stored in MongoDB and linked to the appointment.
+- The backend stores the appointment and returns an AMY reference plus Google Meet status. Until Calendar OAuth is connected, meeting status is `pending_connection` and no fake link is shown.
+- A fixed WhatsApp button opens a prefilled chat with +91 6355734167. Mobile also retains the call/book quick-action bar.
 
 ## Data model
-`AppointmentCreate`: full_name, email, phone, consultation_type, focus_area, preferred_date, preferred_time, notes.
-`Appointment`: request fields plus id, reference, status (`requested`), created_at.
+`AppointmentCreate`: full_name, email, phone, consultation_type, focus_area, preferred_date, preferred_time, notes, attachment_ids.
+`Appointment`: request fields plus id, reference, status (`requested`), meeting_status, meeting_url, created_at.
+`BookingOptions`: timezone, available_days, available_dates, available_times, google_meet_enabled.
 
 ## Auth
 No authentication. The public site has no gated areas or seeded accounts.

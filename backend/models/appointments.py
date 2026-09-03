@@ -17,12 +17,15 @@ class AppointmentCreate(BaseModel):
     preferred_date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     preferred_time: str = Field(min_length=2, max_length=40)
     notes: str = Field(default="", max_length=1000)
+    attachment_ids: list[str] = Field(default_factory=list, max_length=3)
 
 
 class Appointment(AppointmentCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     reference: str
     status: Literal["requested"] = "requested"
+    meeting_status: Literal["pending_connection", "scheduled"] = "pending_connection"
+    meeting_url: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -36,3 +39,12 @@ class BookingOptions(BaseModel):
     timezone: str
     available_days: list[str]
     available_dates: list[AvailableDate]
+    available_times: list[str]
+    google_meet_enabled: bool
+
+
+class AppointmentAttachment(BaseModel):
+    id: str
+    file_name: str
+    content_type: str
+    size: int
