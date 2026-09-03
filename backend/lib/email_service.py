@@ -168,6 +168,8 @@ def build_whatsapp_message(
     return msg
 
 
+AMEYA_LOGO_URL = "https://customer-assets-7cd3h4nn.emergentagent.net/job_ameya-health/artifacts/feu0o2dt_WhatsApp%20Image%202026-09-02%20at%2023.19.22.jpeg"
+
 async def send_appointment_emails(
     appointment_id: str,
     patient_name: str,
@@ -239,9 +241,9 @@ async def send_appointment_emails(
       <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF8F5; margin: 0; padding: 20px; color: #2B2D42; }}
         .container {{ max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; overflow: hidden; border: 1px solid #E5DEC9; }}
-        .header {{ background-color: #164D59; padding: 28px; text-align: center; color: #FFFFFF; }}
-        .header h1 {{ margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }}
-        .header p {{ margin: 6px 0 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #8FD5E1; }}
+        .header {{ background-color: #164D59; padding: 28px 20px; text-align: center; color: #FFFFFF; }}
+        .header h1 {{ margin: 6px 0 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }}
+        .header p {{ margin: 4px 0 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #8FD5E1; }}
         .content {{ padding: 32px 28px; }}
         .badge {{ display: inline-block; background-color: #EAF2F1; color: #0E776C; font-weight: bold; font-size: 12px; padding: 4px 12px; border-radius: 12px; margin-bottom: 16px; }}
         .ref-box {{ background-color: #F4F1E8; border-radius: 12px; padding: 18px; margin: 20px 0; }}
@@ -256,6 +258,7 @@ async def send_appointment_emails(
     <body>
       <div class="container">
         <div class="header">
+          <img src="{AMEYA_LOGO_URL}" alt="Ameya Consultancy Logo" width="56" height="56" style="border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.4); margin: 0 auto; display: block; background-color: #FFFDF8;" />
           <h1>Ameya Consultancy</h1>
           <p>Her Health Connect · Dr. Nisha Ghelani</p>
         </div>
@@ -351,6 +354,7 @@ async def send_appointment_emails(
     <body>
       <div class="container">
         <div class="header">
+          <img src="{AMEYA_LOGO_URL}" alt="Ameya Consultancy Logo" width="56" height="56" style="border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.4); margin: 0 auto; display: block; background-color: #FFFDF8;" />
           <h1>Ameya Consultancy</h1>
           <p>New Appointment Alert · Doctor Portal</p>
         </div>
@@ -399,7 +403,7 @@ async def send_appointment_emails(
 
     patient_subject = f"Confirmed: Your Consultation with Dr. Nisha Ghelani ({reference})"
     doctor_subject = f"📅 New Booking: {patient_name} — {preferred_date} at {preferred_time} ({reference})"
-    from_email = os.environ.get("RESEND_FROM_EMAIL", "Ameya Consultancy <onboarding@resend.dev>")
+    from_email = os.environ.get("RESEND_FROM_EMAIL", "Dr. Nisha Ghelani · Ameya Consultancy <onboarding@resend.dev>")
 
     b64_ics = base64.b64encode(ics_content.encode("utf-8")).decode("utf-8")
     resend_key = os.environ.get("RESEND_API_KEY")
