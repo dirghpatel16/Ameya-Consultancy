@@ -46,12 +46,10 @@ app.include_router(api_router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    import traceback
-    tb = traceback.format_exc()
-    logger.error("Unhandled error: %s\n%s", exc, tb)
+    logger.error("Unhandled error in API: %s", exc, exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"detail": str(exc), "type": type(exc).__name__, "traceback": tb}
+        content={"detail": "An unexpected error occurred. Please contact the clinic directly."}
     )
 
 cors_origins_raw = os.environ.get('CORS_ORIGINS', '*')
