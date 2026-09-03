@@ -647,33 +647,33 @@ export default function Home() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-[#263D3A] selection:bg-[#E4B45E]/30">
-      <div className="relative z-50 flex min-h-9 items-center justify-center bg-[#8FD5E1] px-3 py-1.5 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-[#164D59] sm:text-xs" data-testid="announcement-bar">
+      <div className="relative z-50 flex min-h-8 items-center justify-center bg-[#8FD5E1] px-3 py-1.5 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-[#164D59] sm:text-xs" data-testid="announcement-bar">
         <span>Private care for every chapter of her health · Tue · Thu · Sat</span>
       </div>
-      <header className="absolute inset-x-0 top-9 z-40 border-0 bg-transparent px-2.5 py-2 sm:px-6 lg:px-10" data-testid="site-header">
-        <div className="mx-auto flex h-16 sm:h-[4.5rem] max-w-7xl items-center justify-between rounded-sm bg-white px-3.5 sm:px-6 shadow-[0_12px_35px_rgba(23,60,58,0.12)]">
-          <a href="#top" className="group flex items-center gap-2.5 sm:gap-3" data-testid="brand-home-link">
-            <span className="size-9 sm:size-11 overflow-hidden rounded-full border border-[#D9DFD4] bg-[#FFFDF8] shadow-sm transition-transform duration-300 group-hover:rotate-3">
+      <header className="sticky top-0 z-40 border-b border-[#E5DEC9]/80 bg-white/95 px-3 py-2 sm:px-6 lg:px-10 shadow-xs backdrop-blur-md" data-testid="site-header">
+        <div className="mx-auto flex h-14 sm:h-[4.5rem] max-w-7xl items-center justify-between">
+          <a href="#top" className="group flex items-center gap-2 sm:gap-3 shrink-0" data-testid="brand-home-link">
+            <span className="size-8 sm:size-11 overflow-hidden rounded-full border border-[#D9DFD4] bg-[#FFFDF8] shadow-sm transition-transform duration-300 group-hover:rotate-3">
               <img src={AMEYA_LOGO_URL} alt="Ameya Consultancy woman and leaf logo" className="size-full scale-125 object-cover" data-testid="header-brand-logo" />
             </span>
-            <span>
-              <span className="block font-sans text-sm sm:text-lg font-semibold leading-none text-[#164D59]" data-testid="brand-name">Ameya Consultancy</span>
-              <span className="mt-0.5 block text-[8px] sm:text-[9px] font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em] text-[#0E776C]" data-testid="brand-tagline">Her Health Connect</span>
-            </span>
+            <div>
+              <span className="block font-sans text-xs sm:text-lg font-semibold leading-none text-[#164D59]" data-testid="brand-name">Ameya Consultancy</span>
+              <span className="mt-0.5 block text-[7.5px] sm:text-[9px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.22em] text-[#0E776C]" data-testid="brand-tagline">Her Health Connect</span>
+            </div>
           </a>
           <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation" data-testid="desktop-navigation">
             {["Care pathways", "About Dr. Nisha", "Questions"].map((item, index) => (
               <a key={item} href={`#${["care", "about", "faq"][index]}`} className="text-[13px] font-semibold text-[#35504D] transition-colors duration-300 hover:text-[#0E776C]" data-testid={`nav-${item.toLowerCase().replaceAll(" ", "-")}-link`}>{item}</a>
             ))}
           </nav>
-          <Button onClick={openBooking} className="h-9 sm:h-10 rounded-sm bg-[#0E776C] px-3.5 sm:px-5 text-xs sm:text-sm font-semibold text-white hover:bg-[#095D54]" data-testid="header-book-button">
-            Book <span className="hidden xs:inline">a consultation</span> <ArrowUpRight className="ml-1 size-3.5 sm:size-4" />
+          <Button onClick={openBooking} className="h-8 sm:h-10 shrink-0 rounded-sm bg-[#0E776C] px-3 sm:px-5 text-xs sm:text-sm font-semibold text-white hover:bg-[#095D54]" data-testid="header-book-button">
+            <span>Book</span><span className="hidden sm:inline">&nbsp;a consultation</span> <ArrowUpRight className="ml-1 size-3 sm:size-4" />
           </Button>
         </div>
       </header>
 
       <main id="top">
-        <section className="relative min-h-[calc(100svh-2.5rem)] overflow-hidden bg-[#F4F1E8] px-4 pb-14 pt-32 sm:px-8 sm:pt-40 lg:px-12 lg:pb-20" data-testid="hero-section">
+        <section className="relative min-h-[calc(100svh-2.5rem)] overflow-hidden bg-[#F4F1E8] px-4 pb-14 pt-8 sm:px-8 sm:pt-14 sm:pb-20 lg:px-12" data-testid="hero-section">
           <div className="absolute right-0 top-0 hidden h-full w-[39%] bg-[#0E776C] lg:block" aria-hidden="true" />
           <video src={HERO_VIDEO_URL} autoPlay={!reduceMotion} muted loop playsInline preload="metadata" className="absolute right-0 top-0 hidden h-full w-[39%] object-cover opacity-25 mix-blend-luminosity lg:block" aria-hidden="true" data-testid="hero-background-video" />
           <motion.div className="absolute -left-28 bottom-[-12rem] size-[28rem] rounded-full border-[1.5rem] border-[#E9B8AA]/60" aria-hidden="true" animate={reduceMotion ? undefined : { y: [0, -18, 0], rotate: [0, 5, 0] }} transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }} />
@@ -719,15 +719,15 @@ export default function Home() {
       </main>
 
       <footer className="bg-[#114B5F] text-white" data-testid="site-footer">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl px-5 pt-12 pb-36 sm:py-12 sm:px-8 lg:px-12">
           <div className="grid gap-8 border-b border-white/15 pb-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]"><div><div className="flex items-center gap-3"><span className="size-12 sm:size-14 overflow-hidden rounded-full border border-white/20 bg-[#FFFDF8]"><img src={AMEYA_LOGO_URL} alt="Ameya Consultancy woman and leaf logo" className="size-full scale-125 object-cover" data-testid="footer-brand-logo" /></span><span className="text-lg sm:text-xl font-semibold" data-testid="footer-brand">Ameya Consultancy</span></div><p className="mt-4 max-w-sm text-xs sm:text-sm leading-relaxed text-white/65" data-testid="footer-description">Her Health Connect—a private space for expert women's health conversations with Dr. Nisha Ghelani.</p></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-contact-label">Contact</p><div className="mt-3 space-y-2.5 text-xs sm:text-sm text-white/75"><a href="tel:+916355734167" className="flex items-center gap-2 hover:text-white" data-testid="footer-phone-link"><Phone className="size-4" /> +91 63557 34167</a><a href="mailto:nishaghelani78@gmail.com" className="flex items-center gap-2 break-all hover:text-white" data-testid="footer-email-link"><Mail className="size-4" /> nishaghelani78@gmail.com</a></div></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-availability-label">Availability</p><p className="mt-3 text-xs sm:text-sm leading-relaxed text-white/75" data-testid="footer-availability-copy">Tuesday, Thursday & Saturday<br />10:00 AM–6:00 PM</p><Button onClick={scrollToBooking} variant="outline" className="mt-4 rounded-full border-white/30 bg-transparent text-white hover:bg-white hover:text-[#114B5F]" data-testid="footer-book-button">Book a time <ArrowUpRight className="ml-1.5 size-4" /></Button></div></div>
           <div className="mt-8 rounded-2xl border border-[#F4C2B4]/35 bg-[#0d3b4b] p-4 sm:p-5" data-testid="statutory-notice"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]">Important care notice</p><p className="mt-2 max-w-3xl text-xs sm:text-sm leading-relaxed text-white/75">Ameya Consultancy is for planned consultations and expert advice. It is not an emergency service. For acute pain, heavy bleeding, breathing difficulty, or any obstetric emergency, please contact your nearest hospital emergency department immediately.</p></div>
-          <div className="mt-8 flex flex-col gap-4 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><p data-testid="footer-copyright">© {new Date().getFullYear()} Ameya Consultancy · Dr. Nisha Ghelani, MD (Ob & Gyn)</p><nav className="flex items-center gap-5" aria-label="Legal" data-testid="footer-legal-links"><a href="/terms" className="min-h-8 py-2 font-semibold text-white/70 hover:text-white" data-testid="footer-terms-link">Terms & Conditions</a><a href="/privacy" className="min-h-8 py-2 font-semibold text-white/70 hover:text-white" data-testid="footer-privacy-link">Privacy Policy</a></nav></div>
+          <div className="mt-8 flex flex-col gap-4 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between"><p data-testid="footer-copyright">© {new Date().getFullYear()} Ameya Consultancy · Dr. Nisha Ghelani, MD (Ob & Gyn)</p><nav className="flex items-center gap-6" aria-label="Legal" data-testid="footer-legal-links"><a href="/terms" className="min-h-10 py-2.5 font-semibold text-white/80 underline-offset-4 hover:underline hover:text-white" data-testid="footer-terms-link">Terms & Conditions</a><a href="/privacy" className="min-h-10 py-2.5 font-semibold text-white/80 underline-offset-4 hover:underline hover:text-white" data-testid="footer-privacy-link">Privacy Policy</a></nav></div>
         </div>
       </footer>
 
-      <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="fixed bottom-20 right-4 z-40 flex size-12 sm:size-14 items-center justify-center rounded-full bg-[#1FAF62] text-white shadow-[0_12px_30px_rgba(31,175,98,0.3)] transition-transform duration-200 hover:-translate-y-1 md:bottom-6 md:right-6" aria-label="Chat with Dr. Nisha on WhatsApp" data-testid="floating-whatsapp-button"><MessageCircle className="size-5 sm:size-6" /></a>
-      <div className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-2 gap-2 border-t border-[#E5DEC9] bg-[#FAF8F5]/95 p-3 shadow-[0_-10px_30px_rgba(17,75,95,0.12)] backdrop-blur-md md:hidden" data-testid="mobile-quick-action-bar"><a href="tel:+916355734167" className="flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#114B5F] bg-transparent text-xs sm:text-sm font-semibold text-[#114B5F]" data-testid="mobile-call-doctor-button"><Phone className="size-3.5 sm:size-4" /> Call doctor</a><Button onClick={openBooking} className="min-h-11 rounded-full bg-[#E07A5F] text-xs sm:text-sm text-white hover:bg-[#c9654c]" data-testid="mobile-book-button"><CalendarDays className="mr-1.5 size-3.5 sm:size-4" /> Book consultation</Button></div>
+      <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="fixed bottom-24 right-4 z-40 flex size-12 sm:size-14 items-center justify-center rounded-full bg-[#1FAF62] text-white shadow-[0_12px_30px_rgba(31,175,98,0.3)] transition-transform duration-200 hover:-translate-y-1 md:bottom-6 md:right-6" aria-label="Chat with Dr. Nisha on WhatsApp" data-testid="floating-whatsapp-button"><MessageCircle className="size-5 sm:size-6" /></a>
+      <div className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-2 gap-2 border-t border-[#E5DEC9] bg-[#FAF8F5]/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(17,75,95,0.12)] backdrop-blur-md md:hidden" data-testid="mobile-quick-action-bar"><a href="tel:+916355734167" className="flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#114B5F] bg-transparent text-xs sm:text-sm font-semibold text-[#114B5F]" data-testid="mobile-call-doctor-button"><Phone className="size-3.5 sm:size-4" /> Call doctor</a><Button onClick={openBooking} className="min-h-11 rounded-full bg-[#E07A5F] text-xs sm:text-sm text-white hover:bg-[#c9654c]" data-testid="mobile-book-button"><CalendarDays className="mr-1.5 size-3.5 sm:size-4" /> Book consultation</Button></div>
 
       <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
         <DialogContent className="left-0 top-auto bottom-0 max-h-[92vh] w-full max-w-none translate-x-0 translate-y-0 overflow-x-hidden overflow-y-auto rounded-b-none rounded-t-[2rem] border-[#D9DFD4] bg-[#FFFDF8] p-4 sm:p-7 md:left-[50%] md:top-[50%] md:bottom-auto md:max-w-5xl md:translate-x-[-50%] md:translate-y-[-50%] md:rounded-[2rem]" data-testid="appointment-booking-dialog">
