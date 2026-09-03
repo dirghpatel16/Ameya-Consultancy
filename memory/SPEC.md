@@ -13,6 +13,8 @@ Public consultation website for Ameya Consultancy / Her Health Connect, a solo w
 - Patients can attach up to three private PDF/JPG/PNG reports, maximum 10 MB each. Attachments are stored in MongoDB and linked to the appointment.
 - The backend stores the appointment and returns an AMY reference plus Google Meet status. Until Calendar OAuth is connected, meeting status is `pending_connection` and no fake link is shown.
 - A fixed WhatsApp button opens a prefilled chat with +91 6355734167. Mobile also retains the call/book quick-action bar.
+- Postnatal and menopause cards use distinct, non-repeated editorial imagery. Body copy, captions, labels, and other supporting text use the system font; the serif face is reserved for major display headings.
+- Footer links open dedicated `/terms` and `/privacy` pages covering medical scope, scheduling, attachments, external services, data use, retention, and emergency limitations.
 
 ## Data model
 `AppointmentCreate`: full_name, email, phone, consultation_type, focus_area, preferred_date, preferred_time, notes, attachment_ids.
