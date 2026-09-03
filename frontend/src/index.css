@@ -122,6 +122,21 @@
 
 .gentle-float { animation: gentle-float 5s ease-in-out infinite; }
 
+[data-testid="care-section"] {
+  background-color: #dcebe6;
+}
+
+[data-testid="hero-section"]::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.22;
+  background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.8) 0 1px, transparent 1.5px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

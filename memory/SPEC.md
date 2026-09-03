@@ -1,16 +1,16 @@
 # Ameya Consultancy — Living Spec
 
 ## Purpose
-Public consultation website for Ameya Consultancy / Her Health Connect, a solo women's health practice led by Dr. Nisha Ghelani, MD (Ob & Gyn), with 22 years of experience.
+Public consultation website for Ameya Consultancy / Her Health Connect, a solo women's health practice led by Dr. Nisha Ghelani, MD (Ob & Gyn), with 20+ years of experience.
 
 ## Core flow
 - The visual experience uses a Maven-inspired editorial rhythm without copying its branding: announcement strip, floating white navigation, a split art-directed hero, colorful care cards, and alternating campaign-like content blocks.
-- The hero's primary promise is “Care for every stage of womanhood,” supported by a restrained editorial collage, Dr. Nisha profile image, stage card, 22-year trust card, and direct booking CTA.
+- The hero's primary promise is “Care for every stage of womanhood,” supported by a restrained editorial collage, an identity-matched Dr. Nisha portrait, calm motion, a stage card, a 20+ year trust card, and direct booking CTA.
 - Visitors learn about Dr. Nisha's philosophy and care pathways.
 - The care pathway tabs cover antenatal care, postnatal recovery, puberty/adolescent health, menopause, and expert report opinion.
 - Visitors request a consultation through an on-site form. Eligible days are Tuesday, Thursday, and Saturday; Monday, Wednesday, Friday, and Sunday are closed.
-- Booking is a three-step flow (care, schedule, details) with server-anchored upcoming date suggestions and a review summary before submission.
-- Weekly cadence and consultation logistics are nested inside the booking section so availability context sits directly with the request form.
+- Booking is one spacious, visible form organized into care, schedule, and contact groups with server-anchored upcoming date suggestions.
+- Availability is shown only as compact Tue/Thu/Sat guidance and selectable dates inside booking; there is no separate cadence section.
 - The backend stores a request in MongoDB and returns a generated AMY reference. The frontend shows an immediate confirmation dialog with contact fallback details.
 - The mobile viewport has a fixed call/book quick-action bar; booking opens in a bottom-sheet style dialog.
 

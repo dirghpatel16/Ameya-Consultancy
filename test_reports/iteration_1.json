@@ -1,0 +1,80 @@
+{
+  "iteration": 1,
+  "summary": "7 acceptance criteria covered with 5 browser checks + 2 backend test files (3 pytest cases). All passed.",
+  "passed": 7,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Premium hero uses Dr. Nisha's identity-matched natural portrait and says 20+ years rather than 22 years",
+      "name": "hero-identity-and-motion",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "hero-doctor-image loaded with non-zero naturalWidth; hero-heading shows 'Care for every stage of womanhood'; hero-doctor-credential and hero-description both contain '20+ years'; full-page innerText contains no '22 years/22+ years' claim."
+    },
+    {
+      "criterion": "Hero feels alive with calm motion and remains usable",
+      "name": "hero-identity-and-motion",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "hero-doctor-card (motion.div with y-oscillation animation) visible; hero-book-button and hero-care-link both visible and clickable; clicking hero-book-button scrolled booking-section into viewport with no clipping/overlap."
+    },
+    {
+      "criterion": "Booking system is one simple understandable form",
+      "name": "booking-single-form-with-inline-availability",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "appointment-care-section, appointment-schedule-section, appointment-details-section all visible simultaneously inside appointment-booking-form; zero 'Next'/'Back' text controls found in the form."
+    },
+    {
+      "criterion": "Availability is only inside booking",
+      "name": "booking-single-form-with-inline-availability",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "availability-section (compact Tue/Thu/Sat pills) and appointment-date-options (server-provided selectable dates) both rendered inside the booking card."
+    },
+    {
+      "criterion": "Availability is only inside booking (server contract)",
+      "name": "test_tscheck_appointment_options.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET /api/appointments/options -> 200, timezone=Asia/Kolkata, available_days={Tuesday,Thursday,Saturday}, available_dates length=9, every entry's day_label in the allowed set."
+    },
+    {
+      "criterion": "Appointment request completes successfully",
+      "name": "appointment-booking-completes",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Filled consultation type, focus, a server-suggested date, time preference, and unique contact details; submit opened appointment-confirmation-dialog; confirmation-description contained the entered name; confirmation-reference text matched /^AMY-/."
+    },
+    {
+      "criterion": "Appointment request completes successfully (server contract)",
+      "name": "test_tscheck_appointment_request.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/appointments with a tscheck-appointment fixture -> 201, reference starts with 'AMY-', status='requested'; negative case with a non Tue/Thu/Sat date -> 422 (rejection verified)."
+    },
+    {
+      "criterion": "Dr. Nisha clinical care imagery is presented respectfully",
+      "name": "doctor-clinical-image-respectful",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "doctor-clinical-care-image loaded with non-zero naturalWidth alongside doctor-clinical-label/heading/copy; no raw/graphic content asserted, only the respectful editorial derivative and its supporting copy."
+    },
+    {
+      "criterion": "Responsive public consultation experience remains intact",
+      "name": "responsive-mobile-experience-no-overflow",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "At 390x844: site-header, mobile-quick-action-bar, care-pathway-tabs, faq-heading (+ FAQ item toggled open), statutory-notice and footer-copyright all visible; document.scrollWidth<=clientWidth+1 both at load and after scrolling; mobile-book-button opened mobile-booking-sheet with mobile-appointment-booking-form."
+    }
+  ],
+  "notes": [
+    "Acceptance matrix had 7 criteria; the 2 API-bearing criteria (availability data + appointment submission) each received both a browser check and a backend pytest file, yielding 9 checks[] entries total (5 browser + 2 backend files = 3 pytest cases, 2 dual-lane criteria).",
+    "During booking-single-form check, initial attempt used bare data-testid names (e.g. 'schedule-section') but the BookingForm component prefixes testids with 'appointment-' (or 'mobile-appointment-'); corrected to 'appointment-schedule-section' etc. and it passed.",
+    "During the mobile responsive check, the FAQ accordion defaults to item 1 OPEN (openFaq state initialized to 0), not closed; the check was adjusted to open item 2 instead of toggling item 1 closed. Not a bug — just an implementation detail encountered while writing the check.",
+    "Footer and announcement bar both mention 'Tue/Thu/Sat' cadence in passing (contact/footer copy), but no dedicated weekly-cadence/calendar section exists outside the booking card itself; treated as acceptable brief mentions rather than a violation of 'availability is only inside booking'."
+  ]
+}
