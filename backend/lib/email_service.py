@@ -235,330 +235,148 @@ async def send_appointment_emails(
     clean_phone = "".join(c for c in patient_phone if c.isdigit())
     wa_patient_link = f"https://wa.me/{clean_phone}" if clean_phone else None
 
-    # 1. Render Patient HTML email (concierge patient voice)
+    # 1. Patient Confirmation Email — clean, high-contrast, readable
     patient_html = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Consultation Confirmed - Ameya Consultancy</title>
-      <style>
-        body {{
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          background-color: #F6F4EF;
-          margin: 0;
-          padding: 24px 12px;
-          color: #2B2D42;
-          -webkit-font-smoothing: antialiased;
-        }}
-        .wrapper {{
-          max-width: 600px;
-          margin: 0 auto;
-          background: #FFFFFF;
-          border-radius: 18px;
-          overflow: hidden;
-          border: 1px solid #E5DEC9;
-          box-shadow: 0 10px 35px rgba(22, 77, 89, 0.08);
-        }}
-        .top-gold-bar {{
-          height: 5px;
-          background: linear-gradient(90deg, #D4A373 0%, #E8C39E 50%, #D4A373 100%);
-        }}
-        .header {{
-          background: linear-gradient(135deg, #0F3E4D 0%, #164D59 55%, #114B5F 100%);
-          padding: 34px 24px 30px;
-          text-align: center;
-          color: #FFFFFF;
-        }}
-        .logo-img {{
-          width: 64px;
-          height: 64px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 2.5px solid #E8C39E;
-          background-color: #FFFDF8;
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-          display: block;
-          margin: 0 auto 14px auto;
-        }}
-        .brand-title {{
-          margin: 0;
-          font-size: 26px;
-          font-weight: 700;
-          letter-spacing: -0.4px;
-          color: #FFFFFF;
-        }}
-        .brand-sub {{
-          margin: 6px 0 0 0;
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 2.5px;
-          color: #E8C39E;
-          font-weight: 600;
-        }}
-        .body-card {{
-          padding: 36px 32px;
-        }}
-        .status-pill {{
-          display: inline-block;
-          background-color: #E8F5F1;
-          color: #0E776C;
-          font-weight: 700;
-          font-size: 11px;
-          padding: 5px 14px;
-          border-radius: 20px;
-          text-transform: uppercase;
-          letter-spacing: 1.2px;
-          border: 1px solid #B8E2D8;
-          margin-bottom: 18px;
-        }}
-        .greeting {{
-          color: #114B5F;
-          font-size: 24px;
-          font-weight: 700;
-          margin: 0 0 12px 0;
-          letter-spacing: -0.3px;
-        }}
-        .intro-text {{
-          font-size: 15px;
-          line-height: 1.65;
-          color: #4A5568;
-          margin: 0 0 24px 0;
-        }}
-        .ticket-box {{
-          background: #FAF8F3;
-          border: 1px solid #E6DEC9;
-          border-radius: 14px;
-          padding: 22px 24px;
-          margin: 24px 0;
-          position: relative;
-        }}
-        .ticket-ref {{
-          padding-bottom: 16px;
-          margin-bottom: 16px;
-          border-bottom: 1px dashed #D6CDBC;
-        }}
-        .ref-label {{
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 1.8px;
-          color: #839788;
-          font-weight: 700;
-          margin-bottom: 4px;
-        }}
-        .ref-val {{
-          font-size: 24px;
-          font-family: 'SF Mono', Menlo, Consolas, Monaco, monospace;
-          font-weight: 800;
-          color: #114B5F;
-          letter-spacing: 1px;
-        }}
-        .info-table {{
-          width: 100%;
-          border-collapse: collapse;
-        }}
-        .info-table td {{
-          padding: 8px 0;
-          font-size: 14px;
-          vertical-align: top;
-        }}
-        .info-lbl {{
-          width: 38%;
-          color: #52706B;
-          font-weight: 600;
-        }}
-        .info-val {{
-          color: #1A202C;
-          font-weight: 700;
-        }}
-        .meet-card {{
-          background: linear-gradient(135deg, #F0F8F6 0%, #E5F3EF 100%);
-          border: 1.5px solid #9FD3C7;
-          border-radius: 14px;
-          padding: 26px 22px;
-          margin: 28px 0;
-          text-align: center;
-        }}
-        .meet-title {{
-          margin: 0 0 8px 0;
-          font-size: 16px;
-          font-weight: 700;
-          color: #114B5F;
-        }}
-        .meet-subtitle {{
-          margin: 0 0 18px 0;
-          font-size: 13px;
-          color: #52706B;
-        }}
-        .cta-btn {{
-          display: inline-block;
-          background: linear-gradient(135deg, #0E776C 0%, #114B5F 100%);
-          color: #FFFFFF !important;
-          font-weight: 700;
-          font-size: 15px;
-          text-decoration: none;
-          padding: 14px 34px;
-          border-radius: 30px;
-          box-shadow: 0 5px 15px rgba(14, 119, 108, 0.35);
-          letter-spacing: 0.2px;
-        }}
-        .meet-url {{
-          display: block;
-          margin-top: 14px;
-          font-size: 12px;
-          color: #0E776C;
-          word-break: break-all;
-          text-decoration: underline;
-        }}
-        .guidance-box {{
-          background-color: #FDFBF7;
-          border-left: 4px solid #D4A373;
-          border-radius: 0 12px 12px 0;
-          padding: 18px 20px;
-          margin-top: 26px;
-        }}
-        .guidance-title {{
-          margin: 0 0 8px 0;
-          font-size: 13px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: #8C6239;
-        }}
-        .guidance-list {{
-          margin: 0;
-          padding-left: 18px;
-          font-size: 13px;
-          line-height: 1.65;
-          color: #5A6268;
-        }}
-        .footer {{
-          background-color: #FAF8F2;
-          padding: 26px 32px;
-          text-align: center;
-          font-size: 12px;
-          line-height: 1.6;
-          color: #839788;
-          border-top: 1px solid #E8E1D0;
-        }}
-        .footer strong {{
-          color: #164D59;
-        }}
-      </style>
+      <title>Consultation Confirmed</title>
     </head>
-    <body>
-      <div class="wrapper">
-        <div class="top-gold-bar"></div>
-        <div class="header">
-          <img src="{AMEYA_LOGO_URL}" alt="Ameya Consultancy Logo" class="logo-img" />
-          <h1 class="brand-title">Ameya Consultancy</h1>
-          <p class="brand-sub">Her Health Connect · Dr. Nisha Ghelani, MD (Ob & Gyn)</p>
-        </div>
-        <div class="body-card">
-          <span class="status-pill">✓ Appointment Confirmed</span>
-          <h2 class="greeting">Hello {patient_name},</h2>
-          <p class="intro-text">
-            Your appointment with <strong>Dr. Nisha Ghelani</strong>, MD (Ob & Gyn) is confirmed.
-            An interactive calendar invitation (<code>.ics</code>) is attached below so you can sync this to your Google or Apple Calendar in one click.
-          </p>
-          
-          <div class="ticket-box">
-            <div class="ticket-ref">
-              <div class="ref-label">Official Booking Reference</div>
-              <div class="ref-val">{reference}</div>
-            </div>
-            <table class="info-table">
-              <tr>
-                <td class="info-lbl">Consultation Format:</td>
-                <td class="info-val">{type_label}</td>
-              </tr>
-              <tr>
-                <td class="info-lbl">Clinical Pathway:</td>
-                <td class="info-val">{focus_area}</td>
-              </tr>
-              <tr>
-                <td class="info-lbl">Scheduled Date:</td>
-                <td class="info-val">{preferred_date}</td>
-              </tr>
-              <tr>
-                <td class="info-lbl">Scheduled Time:</td>
-                <td class="info-val">{preferred_time} (India Standard Time)</td>
-              </tr>
-            </table>
-            <p style="margin: 12px 0 0 0; font-size: 12px; color: #839788; font-style: italic;">
-              * The attached calendar invite automatically converts this consultation to your local timezone upon opening.
-            </p>
-          </div>
+    <body style="margin:0; padding:0; background-color:#F2F0EB; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #D6CDBC;">
 
-          {f'''
-          <div class="meet-card">
-            <div class="meet-title">Private Video Consultation Room</div>
-            <div class="meet-subtitle">High-definition, encrypted video powered by Google Meet</div>
-            <a href="{meeting_url}" class="cta-btn">Join Google Meet</a>
-            <a href="{meeting_url}" class="meet-url">{meeting_url}</a>
-            <p style="margin: 14px 0 0 0; font-size: 12px; color: #52706B;">
-              🔒 No app download necessary. Simply tap the button above when your appointment begins.
-            </p>
-          </div>
-          ''' if is_virtual and meeting_url else f'''
-          <div style="margin: 24px 0; padding: 20px; background: #FAF8F2; border-radius: 12px; border: 1px solid #E5DEC9;">
-            <p style="margin: 0; font-weight: bold; color: #164D59; font-size: 15px;">🏥 Clinic Location:</p>
-            <p style="margin: 6px 0 0 0; color: #52706B; font-size: 14px; line-height: 1.5;">{CLINIC_ADDRESS}</p>
-          </div>
-          '''}
+            <!-- Gold Accent -->
+            <tr><td style="height:4px; background:linear-gradient(90deg,#C9956B,#D4A373,#C9956B);"></td></tr>
 
-          <div class="guidance-box">
-            <div class="guidance-title">📋 Preparation For Your Consultation</div>
-            <ol class="guidance-list">
-              <li><strong>Quiet Space:</strong> Choose a well-lit, private room where you feel relaxed.</li>
-              <li><strong>Medical History:</strong> Keep any previous prescriptions, scans, or symptom timelines accessible.</li>
-              <li><strong>Questions:</strong> Note down your primary questions so Dr. Nisha can address each one thoroughly.</li>
-            </ol>
-          </div>
+            <!-- Header -->
+            <tr><td style="background:#164D59; padding:30px 24px; text-align:center;">
+              <img src="{AMEYA_LOGO_URL}" alt="Logo" width="58" height="58" style="border-radius:50%; border:2px solid #D4A373; background:#FFFDF8; display:block; margin:0 auto 12px auto;" />
+              <div style="font-size:22px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">Ameya Consultancy</div>
+              <div style="font-size:11px; color:#FFFFFF; letter-spacing:2px; text-transform:uppercase; margin-top:4px; opacity:0.85;">Dr. Nisha Ghelani, MD (Ob &amp; Gyn)</div>
+            </td></tr>
 
-          <p style="margin-top: 28px; font-size: 13px; color: #839788; text-align: center;">
-            Need help or have questions? Contact Dr. Nisha directly at <strong>{CLINIC_PHONE}</strong> or reply to this email.
-          </p>
-        </div>
-        <div class="footer">
-          <strong>Ameya Consultancy · Dr. Nisha Ghelani, MD (Ob & Gyn)</strong><br>
-          Private women's health consultation · 22+ Years Clinical Excellence<br>
-          <span style="font-size: 11px; color: #A0AEC0; margin-top: 6px; display: inline-block;">
-            Confidential medical communication intended exclusively for {patient_name}.
-          </span>
-        </div>
-      </div>
+            <!-- Body -->
+            <tr><td style="padding:32px 30px;">
+              <!-- Status -->
+              <div style="display:inline-block; background:#DFF5EE; color:#0A6B5E; font-size:12px; font-weight:700; padding:5px 14px; border-radius:16px; margin-bottom:18px;">✓ CONFIRMED</div>
+
+              <h2 style="color:#1A1A2E; font-size:22px; font-weight:700; margin:12px 0 10px 0;">Hello {patient_name},</h2>
+              <p style="font-size:15px; line-height:1.7; color:#333333; margin:0 0 24px 0;">
+                Your consultation with <strong style="color:#164D59;">Dr. Nisha Ghelani</strong> has been confirmed. A calendar invite (<code>.ics</code>) is attached — open it to add this appointment to your Google or Apple Calendar.
+              </p>
+
+              <!-- Appointment Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F7F2; border:1px solid #E2DBCC; border-radius:10px; overflow:hidden;">
+                <tr><td style="padding:18px 20px 12px 20px; border-bottom:1px dashed #D6CDBC;">
+                  <div style="font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:#8A8070; font-weight:700;">Booking Reference</div>
+                  <div style="font-size:22px; font-family:Menlo,Consolas,monospace; font-weight:800; color:#164D59; margin-top:4px;">{reference}</div>
+                </td></tr>
+                <tr><td style="padding:16px 20px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:6px 0; font-size:14px; color:#555555; width:42%;">Consultation Type</td>
+                      <td style="padding:6px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{type_label}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0; font-size:14px; color:#555555;">Care Pathway</td>
+                      <td style="padding:6px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{focus_area}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0; font-size:14px; color:#555555;">Date</td>
+                      <td style="padding:6px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{preferred_date}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0; font-size:14px; color:#555555;">Time</td>
+                      <td style="padding:6px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{preferred_time} (IST)</td>
+                    </tr>
+                  </table>
+                  <p style="font-size:12px; color:#777777; margin:10px 0 0 0; font-style:italic;">
+                    The attached calendar invite auto-adjusts to your local timezone.
+                  </p>
+                </td></tr>
+              </table>
+
+              {f'''
+              <!-- Meet Link -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px; background:#EDF7F5; border:1px solid #B0D9CF; border-radius:10px;">
+                <tr><td style="padding:22px 20px; text-align:center;">
+                  <div style="font-size:15px; font-weight:700; color:#164D59; margin-bottom:4px;">Your Video Consultation Room</div>
+                  <div style="font-size:13px; color:#444444; margin-bottom:16px;">Encrypted &amp; powered by Google Meet</div>
+                  <a href="{meeting_url}" style="display:inline-block; background:#0E776C; color:#FFFFFF; font-weight:700; font-size:15px; text-decoration:none; padding:13px 32px; border-radius:8px;">Join Google Meet</a>
+                  <div style="margin-top:12px; font-size:12px; color:#0E776C; word-break:break-all;"><a href="{meeting_url}" style="color:#0E776C;">{meeting_url}</a></div>
+                  <p style="font-size:12px; color:#555555; margin:10px 0 0 0;">🔒 No download needed — works in any browser.</p>
+                </td></tr>
+              </table>
+              ''' if is_virtual and meeting_url else f'''
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px; background:#F9F7F2; border:1px solid #E2DBCC; border-radius:10px;">
+                <tr><td style="padding:18px 20px;">
+                  <div style="font-size:15px; font-weight:700; color:#164D59;">🏥 Clinic Address</div>
+                  <div style="font-size:14px; color:#333333; margin-top:6px; line-height:1.5;">{CLINIC_ADDRESS}</div>
+                </td></tr>
+              </table>
+              '''}
+
+              <!-- Preparation Tips -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px; border-left:4px solid #D4A373; background:#FDFBF6; border-radius:0 8px 8px 0;">
+                <tr><td style="padding:16px 18px;">
+                  <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#7A5C3A; margin-bottom:8px;">📋 Before Your Consultation</div>
+                  <div style="font-size:13px; line-height:1.7; color:#333333;">
+                    <strong>1.</strong> Find a quiet, well-lit room.<br>
+                    <strong>2.</strong> Have past prescriptions or scans handy.<br>
+                    <strong>3.</strong> Write down your top questions.
+                  </div>
+                </td></tr>
+              </table>
+
+              <p style="margin-top:26px; font-size:13px; color:#555555; text-align:center;">
+                Need to reschedule? Call <strong style="color:#164D59;">{CLINIC_PHONE}</strong>
+              </p>
+            </td></tr>
+
+            <!-- Footer -->
+            <tr><td style="background:#F5F2EC; padding:22px 28px; text-align:center; border-top:1px solid #E2DBCC;">
+              <div style="font-size:13px; font-weight:700; color:#164D59;">Ameya Consultancy</div>
+              <div style="font-size:12px; color:#666666; margin-top:2px;">Dr. Nisha Ghelani, MD (Ob &amp; Gyn) · 22+ Years Experience</div>
+              <div style="font-size:11px; color:#999999; margin-top:6px;">Confidential communication for {patient_name}</div>
+            </td></tr>
+
+          </table>
+        </td></tr>
+      </table>
     </body>
     </html>
     """
 
-    # 2. Render Doctor HTML email (doctor clinical alert voice with reports & patient dossier)
+    # 2. Doctor Alert Email — clean clinical dossier, high-contrast, readable
     reports_html = ""
     if attachment_filenames:
-        reports_cards = "".join(f"""
-        <div style="background: #FFFFFF; border: 1px solid #C4E2DC; border-radius: 8px; padding: 10px 14px; margin: 6px 0; font-size: 13px; color: #164D59; display: flex; align-items: center; justify-content: space-between;">
-          <span>📄 <strong>{fn}</strong></span>
-          <span style="font-size: 11px; background: #EAF2F1; color: #0E776C; padding: 2px 8px; border-radius: 10px; font-weight: bold;">Attached</span>
-        </div>
+        reports_rows = "".join(f"""
+        <tr>
+          <td style="padding:8px 12px; font-size:13px; color:#1A1A2E; border-bottom:1px solid #E8F0ED;">📄 <strong>{fn}</strong></td>
+          <td style="padding:8px 12px; font-size:11px; color:#0A6B5E; font-weight:700; text-align:right; border-bottom:1px solid #E8F0ED;">ATTACHED</td>
+        </tr>
         """ for fn in attachment_filenames)
         reports_html = f"""
-        <div style="margin-top: 20px; padding: 18px; background: #F0F8F6; border-radius: 12px; border: 1px solid #B8E2D8;">
-          <div style="font-weight: 700; color: #0E776C; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
-            📎 Uploaded Medical Reports & Scans ({len(attachment_filenames)}):
-          </div>
-          {reports_cards}
-          <p style="margin: 10px 0 0 0; font-size: 12px; color: #0E776C; font-weight: 600;">
-            ✓ All patient files are attached directly to this email for your immediate review.
-          </p>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px; background:#EDF7F5; border:1px solid #B0D9CF; border-radius:10px; overflow:hidden;">
+          <tr><td style="padding:14px 16px; font-size:12px; font-weight:700; color:#0A6B5E; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #C5E0D8;">
+            📎 Patient Reports &amp; Scans ({len(attachment_filenames)})
+          </td></tr>
+          <tr><td style="padding:4px 8px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              {reports_rows}
+            </table>
+          </td></tr>
+          <tr><td style="padding:10px 16px; font-size:12px; color:#0A6B5E; font-weight:600;">
+            ✓ All files attached to this email for review.
+          </td></tr>
+        </table>
         """
     else:
-        reports_html = """
-        <div style="margin-top: 14px; font-size: 13px; color: #839788;">
-          <span style="font-weight: bold; color: #52706B;">Uploaded Reports:</span> None uploaded by patient
-        </div>
-        """
+        reports_html = '<div style="margin-top:14px; font-size:13px; color:#666666;"><strong style="color:#444444;">Uploaded Reports:</strong> None uploaded</div>'
 
     doctor_html = f"""
     <!DOCTYPE html>
@@ -566,281 +384,104 @@ async def send_appointment_emails(
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>New Consultation Dossier - Dr. Nisha Ghelani</title>
-      <style>
-        body {{
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          background-color: #F6F4EF;
-          margin: 0;
-          padding: 24px 12px;
-          color: #2B2D42;
-          -webkit-font-smoothing: antialiased;
-        }}
-        .wrapper {{
-          max-width: 600px;
-          margin: 0 auto;
-          background: #FFFFFF;
-          border-radius: 18px;
-          overflow: hidden;
-          border: 1px solid #E5DEC9;
-          box-shadow: 0 10px 35px rgba(22, 77, 89, 0.08);
-        }}
-        .top-gold-bar {{
-          height: 5px;
-          background: linear-gradient(90deg, #D4A373 0%, #E8C39E 50%, #D4A373 100%);
-        }}
-        .header {{
-          background: linear-gradient(135deg, #0F3E4D 0%, #164D59 55%, #114B5F 100%);
-          padding: 34px 24px 30px;
-          text-align: center;
-          color: #FFFFFF;
-        }}
-        .logo-img {{
-          width: 64px;
-          height: 64px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 2.5px solid #E8C39E;
-          background-color: #FFFDF8;
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-          display: block;
-          margin: 0 auto 14px auto;
-        }}
-        .brand-title {{
-          margin: 0;
-          font-size: 26px;
-          font-weight: 700;
-          letter-spacing: -0.4px;
-          color: #FFFFFF;
-        }}
-        .brand-sub {{
-          margin: 6px 0 0 0;
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 2.5px;
-          color: #E8C39E;
-          font-weight: 600;
-        }}
-        .body-card {{
-          padding: 36px 32px;
-        }}
-        .status-pill {{
-          display: inline-block;
-          background-color: #EBF3F5;
-          color: #164D59;
-          font-weight: 700;
-          font-size: 11px;
-          padding: 5px 14px;
-          border-radius: 20px;
-          text-transform: uppercase;
-          letter-spacing: 1.2px;
-          border: 1px solid #BCD1D6;
-          margin-bottom: 18px;
-        }}
-        .greeting {{
-          color: #114B5F;
-          font-size: 24px;
-          font-weight: 700;
-          margin: 0 0 12px 0;
-          letter-spacing: -0.3px;
-        }}
-        .intro-text {{
-          font-size: 15px;
-          line-height: 1.65;
-          color: #4A5568;
-          margin: 0 0 24px 0;
-        }}
-        .ticket-box {{
-          background: #FAF8F3;
-          border: 1px solid #E6DEC9;
-          border-radius: 14px;
-          padding: 22px 24px;
-          margin: 24px 0;
-        }}
-        .ticket-ref {{
-          padding-bottom: 16px;
-          margin-bottom: 16px;
-          border-bottom: 1px dashed #D6CDBC;
-        }}
-        .ref-label {{
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 1.8px;
-          color: #839788;
-          font-weight: 700;
-          margin-bottom: 4px;
-        }}
-        .ref-val {{
-          font-size: 24px;
-          font-family: 'SF Mono', Menlo, Consolas, Monaco, monospace;
-          font-weight: 800;
-          color: #114B5F;
-          letter-spacing: 1px;
-        }}
-        .dossier-table {{
-          width: 100%;
-          border-collapse: collapse;
-        }}
-        .dossier-table td {{
-          padding: 9px 0;
-          font-size: 14px;
-          border-bottom: 1px solid #F0ECE1;
-          vertical-align: top;
-        }}
-        .dossier-table tr:last-child td {{
-          border-bottom: none;
-        }}
-        .dossier-lbl {{
-          width: 36%;
-          color: #52706B;
-          font-weight: 600;
-        }}
-        .dossier-val {{
-          color: #1A202C;
-          font-weight: 700;
-        }}
-        .notes-card {{
-          background-color: #FAF8F2;
-          border-left: 4px solid #164D59;
-          border-radius: 0 10px 10px 0;
-          padding: 16px 18px;
-          margin: 20px 0;
-        }}
-        .notes-lbl {{
-          font-size: 12px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: #164D59;
-          margin-bottom: 6px;
-        }}
-        .notes-val {{
-          font-size: 14px;
-          color: #2D3748;
-          line-height: 1.55;
-        }}
-        .meet-card {{
-          background: linear-gradient(135deg, #F0F8F6 0%, #E5F3EF 100%);
-          border: 1.5px solid #9FD3C7;
-          border-radius: 14px;
-          padding: 24px 20px;
-          margin: 26px 0;
-          text-align: center;
-        }}
-        .meet-title {{
-          margin: 0 0 6px 0;
-          font-size: 16px;
-          font-weight: 700;
-          color: #114B5F;
-        }}
-        .cta-btn {{
-          display: inline-block;
-          background: linear-gradient(135deg, #0E776C 0%, #114B5F 100%);
-          color: #FFFFFF !important;
-          font-weight: 700;
-          font-size: 15px;
-          text-decoration: none;
-          padding: 14px 34px;
-          border-radius: 30px;
-          box-shadow: 0 5px 15px rgba(14, 119, 108, 0.35);
-          letter-spacing: 0.2px;
-          margin: 12px 0 8px 0;
-        }}
-        .meet-url {{
-          display: block;
-          font-size: 12px;
-          color: #0E776C;
-          word-break: break-all;
-          text-decoration: underline;
-        }}
-        .footer {{
-          background-color: #FAF8F2;
-          padding: 24px 32px;
-          text-align: center;
-          font-size: 12px;
-          line-height: 1.6;
-          color: #839788;
-          border-top: 1px solid #E8E1D0;
-        }}
-      </style>
+      <title>New Patient Dossier</title>
     </head>
-    <body>
-      <div class="wrapper">
-        <div class="top-gold-bar"></div>
-        <div class="header">
-          <img src="{AMEYA_LOGO_URL}" alt="Ameya Consultancy Logo" class="logo-img" />
-          <h1 class="brand-title">Ameya Consultancy</h1>
-          <p class="brand-sub">Clinical Dossier & Appointment Alert · Dr. Nisha Ghelani</p>
-        </div>
-        <div class="body-card">
-          <span class="status-pill">⚡ New Booking Received</span>
-          <h2 class="greeting">Hello Dr. Nisha,</h2>
-          <p class="intro-text">
-            A new consultation has been booked on the Ameya Consultancy portal. All patient details and clinical intake information are summarized below.
-          </p>
-          
-          <div class="ticket-box">
-            <div class="ticket-ref">
-              <div class="ref-label">Booking Reference</div>
-              <div class="ref-val">{reference}</div>
-            </div>
-            <table class="dossier-table">
-              <tr>
-                <td class="dossier-lbl">Patient Full Name:</td>
-                <td class="dossier-val">{patient_name}</td>
-              </tr>
-              <tr>
-                <td class="dossier-lbl">Contact Phone:</td>
-                <td class="dossier-val">
-                  <a href="tel:{patient_phone}" style="color: #0E776C; text-decoration: none; font-weight: bold;">{patient_phone}</a>
-                  {f' · <a href="{wa_patient_link}" style="color: #25D366; text-decoration: none; font-weight: bold;">WhatsApp</a>' if wa_patient_link else ''}
-                </td>
-              </tr>
-              <tr>
-                <td class="dossier-lbl">Contact Email:</td>
-                <td class="dossier-val"><a href="mailto:{patient_email}" style="color: #0E776C; text-decoration: none;">{patient_email}</a></td>
-              </tr>
-              <tr>
-                <td class="dossier-lbl">Care Focus:</td>
-                <td class="dossier-val"><span style="background: #E8F5F1; color: #0E776C; padding: 3px 8px; border-radius: 8px; font-size: 13px;">{focus_area}</span></td>
-              </tr>
-              <tr>
-                <td class="dossier-lbl">Consultation Date:</td>
-                <td class="dossier-val">{preferred_date}</td>
-              </tr>
-              <tr>
-                <td class="dossier-lbl">Consultation Time:</td>
-                <td class="dossier-val">{preferred_time} (IST)</td>
-              </tr>
-            </table>
-          </div>
+    <body style="margin:0; padding:0; background-color:#F2F0EB; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #D6CDBC;">
 
-          <div class="notes-card">
-            <div class="notes-lbl">Patient Notes / Health Concern:</div>
-            <div class="notes-val">"{notes if notes else 'No specific concerns noted in request.'}"</div>
-          </div>
+            <!-- Gold Accent -->
+            <tr><td style="height:4px; background:linear-gradient(90deg,#C9956B,#D4A373,#C9956B);"></td></tr>
 
-          {reports_html}
+            <!-- Header -->
+            <tr><td style="background:#164D59; padding:30px 24px; text-align:center;">
+              <img src="{AMEYA_LOGO_URL}" alt="Logo" width="58" height="58" style="border-radius:50%; border:2px solid #D4A373; background:#FFFDF8; display:block; margin:0 auto 12px auto;" />
+              <div style="font-size:22px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px;">Ameya Consultancy</div>
+              <div style="font-size:11px; color:#FFFFFF; letter-spacing:2px; text-transform:uppercase; margin-top:4px; opacity:0.85;">Doctor Alert · New Patient Booking</div>
+            </td></tr>
 
-          {f'''
-          <div class="meet-card">
-            <div class="meet-title">Scheduled Google Meet Room</div>
-            <div style="font-size: 12px; color: #0E776C; font-weight: 600; margin-bottom: 6px;">
-              ✓ Synced automatically to your Google Calendar
-            </div>
-            <a href="{meeting_url}" class="cta-btn">Start / Join Consultation</a>
-            <a href="{meeting_url}" class="meet-url">{meeting_url}</a>
-          </div>
-          ''' if is_virtual and meeting_url else ''}
-        </div>
-        <div class="footer">
-          <strong>Ameya Consultancy Notification Engine</strong><br>
-          Direct clinical alert prepared for Dr. Nisha Ghelani, MD (Ob & Gyn)<br>
-          <span style="font-size: 11px; color: #A0AEC0;">
-            Confidential medical record. Do not forward.
-          </span>
-        </div>
-      </div>
+            <!-- Body -->
+            <tr><td style="padding:32px 30px;">
+              <div style="display:inline-block; background:#E0ECF0; color:#164D59; font-size:12px; font-weight:700; padding:5px 14px; border-radius:16px; margin-bottom:18px;">⚡ NEW BOOKING</div>
+
+              <h2 style="color:#1A1A2E; font-size:22px; font-weight:700; margin:12px 0 10px 0;">Hello Dr. Nisha,</h2>
+              <p style="font-size:15px; line-height:1.7; color:#333333; margin:0 0 24px 0;">
+                A new patient has booked a consultation. Here is the complete intake dossier:
+              </p>
+
+              <!-- Patient Dossier Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F7F2; border:1px solid #E2DBCC; border-radius:10px; overflow:hidden;">
+                <tr><td style="padding:18px 20px 12px 20px; border-bottom:1px dashed #D6CDBC;">
+                  <div style="font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:#8A8070; font-weight:700;">Booking Reference</div>
+                  <div style="font-size:22px; font-family:Menlo,Consolas,monospace; font-weight:800; color:#164D59; margin-top:4px;">{reference}</div>
+                </td></tr>
+                <tr><td style="padding:16px 20px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555; width:38%; border-bottom:1px solid #EDEAD9;">Patient Name</td>
+                      <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700; border-bottom:1px solid #EDEAD9;">{patient_name}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555; border-bottom:1px solid #EDEAD9;">Phone</td>
+                      <td style="padding:7px 0; font-size:14px; font-weight:700; border-bottom:1px solid #EDEAD9;">
+                        <a href="tel:{patient_phone}" style="color:#164D59; text-decoration:none;">{patient_phone}</a>{f' · <a href="{wa_patient_link}" style="color:#25D366; text-decoration:none; font-weight:700;">WhatsApp</a>' if wa_patient_link else ''}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555; border-bottom:1px solid #EDEAD9;">Email</td>
+                      <td style="padding:7px 0; font-size:14px; font-weight:700; border-bottom:1px solid #EDEAD9;"><a href="mailto:{patient_email}" style="color:#164D59; text-decoration:none;">{patient_email}</a></td>
+                    </tr>
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555; border-bottom:1px solid #EDEAD9;">Care Focus</td>
+                      <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700; border-bottom:1px solid #EDEAD9;">{focus_area}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555; border-bottom:1px solid #EDEAD9;">Date</td>
+                      <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700; border-bottom:1px solid #EDEAD9;">{preferred_date}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555;">Time</td>
+                      <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{preferred_time} (IST)</td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+
+              <!-- Patient Notes -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px; border-left:4px solid #164D59; background:#F9F7F2; border-radius:0 8px 8px 0;">
+                <tr><td style="padding:14px 18px;">
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#164D59; margin-bottom:5px;">Patient Notes / Concern</div>
+                  <div style="font-size:14px; color:#1A1A2E; line-height:1.6;">"{notes if notes else 'No specific concerns noted.'}"</div>
+                </td></tr>
+              </table>
+
+              {reports_html}
+
+              {f'''
+              <!-- Meet Link -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px; background:#EDF7F5; border:1px solid #B0D9CF; border-radius:10px;">
+                <tr><td style="padding:22px 20px; text-align:center;">
+                  <div style="font-size:15px; font-weight:700; color:#164D59; margin-bottom:4px;">Google Meet Room</div>
+                  <div style="font-size:12px; color:#0A6B5E; font-weight:600; margin-bottom:14px;">✓ Auto-synced to your Google Calendar</div>
+                  <a href="{meeting_url}" style="display:inline-block; background:#0E776C; color:#FFFFFF; font-weight:700; font-size:15px; text-decoration:none; padding:13px 32px; border-radius:8px;">Start / Join Consultation</a>
+                  <div style="margin-top:12px; font-size:12px; word-break:break-all;"><a href="{meeting_url}" style="color:#0E776C;">{meeting_url}</a></div>
+                </td></tr>
+              </table>
+              ''' if is_virtual and meeting_url else ''}
+
+            </td></tr>
+
+            <!-- Footer -->
+            <tr><td style="background:#F5F2EC; padding:22px 28px; text-align:center; border-top:1px solid #E2DBCC;">
+              <div style="font-size:13px; font-weight:700; color:#164D59;">Ameya Consultancy — Notification Engine</div>
+              <div style="font-size:12px; color:#666666; margin-top:2px;">Alert for Dr. Nisha Ghelani, MD (Ob &amp; Gyn)</div>
+              <div style="font-size:11px; color:#999999; margin-top:6px;">Confidential medical record. Do not forward.</div>
+            </td></tr>
+
+          </table>
+        </td></tr>
+      </table>
     </body>
     </html>
     """
