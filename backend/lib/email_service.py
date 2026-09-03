@@ -501,7 +501,7 @@ async def send_appointment_emails(
 
     patient_subject = f"Confirmed: Your Consultation with Dr. Nisha Ghelani ({reference})"
     doctor_subject = f"📅 New Booking: {patient_name} — {preferred_date} at {preferred_time} ({reference})"
-    from_email = os.environ.get("RESEND_FROM_EMAIL", "Ameya Consultancy <onboarding@resend.dev>")
+    from_email = os.environ.get("RESEND_FROM_EMAIL", "Ameya Consultancy <appointments@ameyaconsultancy.com>")
 
     b64_ics = base64.b64encode(ics_content.encode("utf-8")).decode("utf-8")
     resend_key = os.environ.get("RESEND_API_KEY")
