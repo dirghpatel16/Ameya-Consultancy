@@ -24,3 +24,15 @@ class Appointment(AppointmentCreate):
     reference: str
     status: Literal["requested"] = "requested"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class AvailableDate(BaseModel):
+    date: str
+    day_label: str
+    display_label: str
+
+
+class BookingOptions(BaseModel):
+    timezone: str
+    available_days: list[str]
+    available_dates: list[AvailableDate]

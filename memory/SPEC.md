@@ -9,6 +9,7 @@ Public consultation website for Ameya Consultancy / Her Health Connect, a solo w
 - Visitors learn about Dr. Nisha's philosophy and care pathways.
 - The care pathway tabs cover antenatal care, postnatal recovery, puberty/adolescent health, menopause, and expert report opinion.
 - Visitors request a consultation through an on-site form. Eligible days are Tuesday, Thursday, and Saturday; Monday, Wednesday, Friday, and Sunday are closed.
+- Booking is a three-step flow (care, schedule, details) with server-anchored upcoming date suggestions and a review summary before submission.
 - Weekly cadence and consultation logistics are nested inside the booking section so availability context sits directly with the request form.
 - The backend stores a request in MongoDB and returns a generated AMY reference. The frontend shows an immediate confirmation dialog with contact fallback details.
 - The mobile viewport has a fixed call/book quick-action bar; booking opens in a bottom-sheet style dialog.
@@ -22,3 +23,6 @@ No authentication. The public site has no gated areas or seeded accounts.
 
 ## Contact
 Phone: +91 6355734167. Email: nishaghelani78@gmail.com.
+
+## Brand asset
+The supplied gold-and-teal woman-and-leaf logo is used in the header, footer, and browser favicon.

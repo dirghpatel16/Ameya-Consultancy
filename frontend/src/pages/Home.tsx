@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import {
   ArrowRight,
@@ -28,7 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, apiPost } from "@/lib/api";
+import { ApiError, apiGet, apiPost } from "@/lib/api";
 
 type ConsultationType = "clinic_visit" | "video_consultation" | "second_opinion";
 
@@ -48,6 +48,18 @@ interface Appointment extends AppointmentCreate {
   reference: string;
   status: "requested";
   created_at: string;
+}
+
+interface AvailableDate {
+  date: string;
+  day_label: string;
+  display_label: string;
+}
+
+interface BookingOptions {
+  timezone: string;
+  available_days: string[];
+  available_dates: AvailableDate[];
 }
 
 interface BookingFormProps {
@@ -144,6 +156,9 @@ const consultationTypes: { value: ConsultationType; label: string; detail: strin
   { value: "second_opinion", label: "Second opinion", detail: "Review reports together" },
 ];
 
+const AMEYA_LOGO_URL = "https://customer-assets-7cd3h4nn.emergentagent.net/job_ameya-health/artifacts/feu0o2dt_WhatsApp%20Image%202026-09-02%20at%2023.19.22.jpeg";
+const fetchBookingOptions = () => apiGet<BookingOptions>("/appointments/options");
+
 function Reveal({ children, className = "", delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   return (
     <motion.div
@@ -162,12 +177,20 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
   const testId = (name: string) => `${testIdPrefix}-${name}`;
   const [form, setForm] = useState<AppointmentCreate>(initialForm);
   const [dateError, setDateError] = useState("");
+  const [step, setStep] = useState(1);
+  const bookingOptions = useQuery({
+    queryKey: ["booking-options"],
+    queryFn: fetchBookingOptions,
+    retry: false,
+    staleTime: 15 * 60 * 1000,
+  });
   const mutation = useMutation({
     mutationFn: (payload: AppointmentCreate) => apiPost<Appointment>("/appointments", payload),
     onSuccess: (appointment) => {
       toast.success("Consultation request saved", { description: `Reference ${appointment.reference}` });
       setForm(initialForm);
       setDateError("");
+      setStep(1);
       onCreated(appointment);
     },
   });
@@ -179,12 +202,22 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (step !== 3) return;
+    mutation.mutate(form);
+  };
+
+  const continueToDetails = () => {
+    if (!form.preferred_date) {
+      setDateError("Please choose a preferred consultation date.");
+      return;
+    }
     const selectedDate = new Date(`${form.preferred_date}T12:00:00`);
-    if ([0, 1, 3, 5].includes(selectedDate.getDay())) {
+    if (Number.isNaN(selectedDate.getTime()) || [0, 1, 3, 5].includes(selectedDate.getDay())) {
       setDateError("Please choose Tuesday, Thursday, or Saturday.");
       return;
     }
-    mutation.mutate(form);
+    setDateError("");
+    setStep(3);
   };
 
   const errorMessage = mutation.error instanceof ApiError && mutation.error.status === 422
@@ -194,73 +227,43 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
       : "";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5" data-testid={testId("booking-form")}>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="full-name">Your name</Label>
-          <Input id={`${testIdPrefix}-full-name`} required value={form.full_name} onChange={updateField("full_name")} placeholder="Full name" data-testid={testId("name-input")} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone number</Label>
-          <Input id={`${testIdPrefix}-phone`} required value={form.phone} onChange={updateField("phone")} placeholder="+91 ..." data-testid={testId("phone-input")} />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
-        <Input id={`${testIdPrefix}-email`} type="email" required value={form.email} onChange={updateField("email")} placeholder="you@example.com" data-testid={testId("email-input")} />
-      </div>
-      <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold text-[#2B2D42]">How would you like to meet?</legend>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {consultationTypes.map((type) => (
-            <button
-              key={type.value}
-              type="button"
-              aria-pressed={form.consultation_type === type.value}
-              onClick={() => setForm((current) => ({ ...current, consultation_type: type.value }))}
-              className={`min-h-16 rounded-xl border px-3 py-3 text-left text-sm transition-all duration-300 hover:-translate-y-0.5 ${form.consultation_type === type.value ? "border-[#114B5F] bg-[#EAF2F1] text-[#114B5F] shadow-sm" : "border-[#E5DEC9] bg-white text-[#5C6479] hover:border-[#839788]"}`}
-              data-testid={testId(`consultation-type-${type.value}`)}
-            >
-              <span className="block font-semibold">{type.label}</span>
-              <span className="mt-1 block text-xs opacity-75">{type.detail}</span>
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="focus-area">What can we help with?</Label>
-          <select id={`${testIdPrefix}-focus-area`} required value={form.focus_area} onChange={updateField("focus_area")} className="flex h-11 w-full rounded-lg border border-[#E5DEC9] bg-white px-3 text-sm text-[#2B2D42] outline-none ring-offset-white transition focus:border-[#114B5F] focus:ring-2 focus:ring-[#114B5F]/20" data-testid={testId("focus-select")}>
-            {focusAreas.map((area) => <option key={area.id} value={area.id}>{area.title}</option>)}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="preferred-date">Preferred date</Label>
-          <Input id={`${testIdPrefix}-preferred-date`} type="date" required value={form.preferred_date} onChange={updateField("preferred_date")} data-testid={testId("date-input")} />
-          <p className="text-xs text-[#5C6479]" data-testid={testId("date-hint")}>Tuesday, Thursday, or Saturday only.</p>
-        </div>
-      </div>
-      {dateError && <p className="text-sm font-medium text-[#B84F3A]" role="alert" data-testid={testId("date-error")}>{dateError}</p>}
-      <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold text-[#2B2D42]">Preferred time</legend>
-        <div className="flex flex-wrap gap-2">
-          {["Morning preference", "Afternoon preference", "Evening preference"].map((time) => (
-            <button key={time} type="button" aria-pressed={form.preferred_time === time} onClick={() => setForm((current) => ({ ...current, preferred_time: time }))} className={`min-h-11 rounded-full border px-4 text-sm transition-all duration-300 ${form.preferred_time === time ? "border-[#114B5F] bg-[#114B5F] text-white" : "border-[#E5DEC9] bg-white text-[#5C6479] hover:border-[#114B5F]"}`} data-testid={testId(`time-${time.split(" ")[0].toLowerCase()}`)}>
-              {time.replace(" preference", "")}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <div className="space-y-2">
-        <Label htmlFor="notes">Anything you would like the doctor to know? <span className="font-normal text-[#5C6479]">(optional)</span></Label>
-        <Textarea id={`${testIdPrefix}-notes`} value={form.notes} onChange={updateField("notes")} placeholder="A few words about what you would like to discuss..." className="min-h-24 resize-none" data-testid={testId("notes-input")} />
-      </div>
-      {errorMessage && <p className="text-sm font-medium text-[#B84F3A]" role="alert" data-testid={testId("form-error")}>{errorMessage}</p>}
-      <Button type="submit" disabled={mutation.isPending} className="h-12 w-full rounded-full bg-[#E07A5F] text-white shadow-[0_10px_24px_rgba(224,122,95,0.22)] hover:bg-[#c9654c]" data-testid={testId("submit-button")}>
-        {mutation.isPending ? "Saving your request..." : "Request a consultation"}
-        {!mutation.isPending && <ArrowRight className="ml-2 size-4" />}
-      </Button>
-      <p className="flex items-start gap-2 text-xs leading-relaxed text-[#5C6479]" data-testid={testId("privacy-note")}><ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#1A5E72]" /> Your details are used only to arrange this private consultation.</p>
+    <form onSubmit={handleSubmit} className="space-y-7" data-testid={testId("booking-form")}>
+      <ol className="grid grid-cols-3 gap-2" aria-label="Booking progress" data-testid={testId("progress")}>
+        {["Care", "Schedule", "Details"].map((label, index) => {
+          const number = index + 1;
+          const active = step === number;
+          const complete = step > number;
+          return <li key={label} className="relative" data-testid={testId(`progress-${label.toLowerCase()}`)}><div className={`h-1 rounded-full ${active || complete ? "bg-[#0E776C]" : "bg-[#D9DFD4]"}`} /><span className={`mt-2 block text-[10px] font-bold uppercase tracking-[0.14em] ${active ? "text-[#0E776C]" : "text-[#839788]"}`}>{number}. {label}</span></li>;
+        })}
+      </ol>
+
+      {step === 1 && <motion.div key="care-step" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} className="space-y-6" data-testid={testId("care-step")}>
+        <div><p className="font-serif text-2xl text-[#164D59]" data-testid={testId("care-step-heading")}>What kind of support would feel helpful?</p><p className="mt-2 text-sm leading-relaxed text-[#5C6479]" data-testid={testId("care-step-copy")}>Choose the closest fit. You can add context before sending the request.</p></div>
+        <fieldset className="space-y-3"><legend className="text-sm font-semibold text-[#2B2D42]">How would you like to meet?</legend><div className="grid gap-2 sm:grid-cols-3">{consultationTypes.map((type) => <button key={type.value} type="button" aria-pressed={form.consultation_type === type.value} onClick={() => setForm((current) => ({ ...current, consultation_type: type.value }))} className={`min-h-20 rounded-xl border px-3 py-3 text-left text-sm transition-all duration-300 hover:-translate-y-0.5 ${form.consultation_type === type.value ? "border-[#0E776C] bg-[#EAF2F1] text-[#164D59] shadow-sm" : "border-[#E5DEC9] bg-white text-[#5C6479] hover:border-[#839788]"}`} data-testid={testId(`consultation-type-${type.value}`)}><span className="block font-semibold">{type.label}</span><span className="mt-1 block text-xs opacity-75">{type.detail}</span></button>)}</div></fieldset>
+        <div className="space-y-2"><Label htmlFor={`${testIdPrefix}-focus-area`}>What can we help with?</Label><select id={`${testIdPrefix}-focus-area`} required value={form.focus_area} onChange={updateField("focus_area")} className="flex h-12 w-full rounded-lg border border-[#E5DEC9] bg-white px-3 text-sm text-[#2B2D42] outline-none ring-offset-white transition focus:border-[#0E776C] focus:ring-2 focus:ring-[#0E776C]/20" data-testid={testId("focus-select")}>{focusAreas.map((area) => <option key={area.id} value={area.id}>{area.title}</option>)}</select></div>
+        <Button type="button" onClick={() => setStep(2)} className="h-12 w-full rounded-full bg-[#0E776C] text-white hover:bg-[#095D54]" data-testid={testId("care-next-button")}>Continue to schedule <ArrowRight className="ml-2 size-4" /></Button>
+      </motion.div>}
+
+      {step === 2 && <motion.div key="schedule-step" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} className="space-y-6" data-testid={testId("schedule-step")}>
+        <div><p className="font-serif text-2xl text-[#164D59]" data-testid={testId("schedule-step-heading")}>When would you prefer to talk?</p><p className="mt-2 text-sm leading-relaxed text-[#5C6479]" data-testid={testId("schedule-step-copy")}>Select a suggested date or enter another Tuesday, Thursday, or Saturday.</p></div>
+        {bookingOptions.data && <div className="grid grid-cols-3 gap-2" data-testid={testId("date-options")}>{bookingOptions.data.available_dates.slice(0, 6).map((option) => <button key={option.date} type="button" aria-pressed={form.preferred_date === option.date} onClick={() => { setForm((current) => ({ ...current, preferred_date: option.date })); setDateError(""); }} className={`min-h-16 rounded-xl border p-2 text-center transition-all duration-300 ${form.preferred_date === option.date ? "border-[#0E776C] bg-[#0E776C] text-white shadow-sm" : "border-[#E5DEC9] bg-white text-[#35504D] hover:border-[#0E776C]"}`} data-testid={testId(`date-option-${option.date}`)}><span className="block text-[10px] font-bold uppercase tracking-[0.12em] opacity-70">{option.day_label.slice(0, 3)}</span><span className="mt-1 block font-serif text-lg">{option.display_label}</span></button>)}</div>}
+        {bookingOptions.isError && <p className="rounded-lg bg-[#F4F1E8] p-3 text-xs text-[#5C6479]" data-testid={testId("date-options-fallback")}>Live suggestions are unavailable, but you can still enter a preferred date below.</p>}
+        <div className="space-y-2"><Label htmlFor={`${testIdPrefix}-preferred-date`}>Preferred date</Label><Input id={`${testIdPrefix}-preferred-date`} type="date" required value={form.preferred_date} onChange={updateField("preferred_date")} data-testid={testId("date-input")} /><p className="text-xs text-[#5C6479]" data-testid={testId("date-hint")}>Tuesday, Thursday, or Saturday only · India time.</p></div>
+        {dateError && <p className="text-sm font-medium text-[#B84F3A]" role="alert" data-testid={testId("date-error")}>{dateError}</p>}
+        <fieldset className="space-y-3"><legend className="text-sm font-semibold text-[#2B2D42]">Preferred time</legend><div className="flex flex-wrap gap-2">{["Morning preference", "Afternoon preference", "Evening preference"].map((time) => <button key={time} type="button" aria-pressed={form.preferred_time === time} onClick={() => setForm((current) => ({ ...current, preferred_time: time }))} className={`min-h-11 rounded-full border px-4 text-sm transition-all duration-300 ${form.preferred_time === time ? "border-[#0E776C] bg-[#0E776C] text-white" : "border-[#E5DEC9] bg-white text-[#5C6479] hover:border-[#0E776C]"}`} data-testid={testId(`time-${time.split(" ")[0].toLowerCase()}`)}>{time.replace(" preference", "")}</button>)}</div></fieldset>
+        <div className="grid grid-cols-[0.45fr_1fr] gap-2"><Button type="button" variant="outline" onClick={() => setStep(1)} className="h-12 rounded-full" data-testid={testId("schedule-back-button")}>Back</Button><Button type="button" onClick={continueToDetails} className="h-12 rounded-full bg-[#0E776C] text-white hover:bg-[#095D54]" data-testid={testId("schedule-next-button")}>Continue <ArrowRight className="ml-2 size-4" /></Button></div>
+      </motion.div>}
+
+      {step === 3 && <motion.div key="details-step" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} className="space-y-6" data-testid={testId("details-step")}>
+        <div><p className="font-serif text-2xl text-[#164D59]" data-testid={testId("details-step-heading")}>Where should we confirm your request?</p><p className="mt-2 text-sm leading-relaxed text-[#5C6479]" data-testid={testId("details-step-copy")}>Your details stay private and are used only to coordinate the consultation.</p></div>
+        <div className="rounded-xl border border-[#D9DFD4] bg-[#F4F1E8] p-4" data-testid={testId("review-card")}><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#839788]">Your preference</p><div className="mt-3 grid gap-2 text-sm text-[#35504D] sm:grid-cols-2"><span data-testid={testId("review-care")}>{focusAreas.find((area) => area.id === form.focus_area)?.title}</span><span data-testid={testId("review-meeting")}>{consultationTypes.find((type) => type.value === form.consultation_type)?.label}</span><span data-testid={testId("review-date")}>{form.preferred_date}</span><span data-testid={testId("review-time")}>{form.preferred_time}</span></div></div>
+        <div className="grid gap-5 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor={`${testIdPrefix}-full-name`}>Your name</Label><Input id={`${testIdPrefix}-full-name`} required value={form.full_name} onChange={updateField("full_name")} placeholder="Full name" data-testid={testId("name-input")} /></div><div className="space-y-2"><Label htmlFor={`${testIdPrefix}-phone`}>Phone number</Label><Input id={`${testIdPrefix}-phone`} required value={form.phone} onChange={updateField("phone")} placeholder="+91 ..." data-testid={testId("phone-input")} /></div></div>
+        <div className="space-y-2"><Label htmlFor={`${testIdPrefix}-email`}>Email address</Label><Input id={`${testIdPrefix}-email`} type="email" required value={form.email} onChange={updateField("email")} placeholder="you@example.com" data-testid={testId("email-input")} /></div>
+        <div className="space-y-2"><Label htmlFor={`${testIdPrefix}-notes`}>Anything you would like the doctor to know? <span className="font-normal text-[#5C6479]">(optional)</span></Label><Textarea id={`${testIdPrefix}-notes`} value={form.notes} onChange={updateField("notes")} placeholder="A few words about what you would like to discuss..." className="min-h-24 resize-none" data-testid={testId("notes-input")} /></div>
+        {errorMessage && <p className="text-sm font-medium text-[#B84F3A]" role="alert" data-testid={testId("form-error")}>{errorMessage}</p>}
+        <div className="grid grid-cols-[0.45fr_1fr] gap-2"><Button type="button" variant="outline" onClick={() => setStep(2)} className="h-12 rounded-full" data-testid={testId("details-back-button")}>Back</Button><Button type="submit" disabled={mutation.isPending} className="h-12 rounded-full bg-[#E07A5F] text-white shadow-[0_10px_24px_rgba(224,122,95,0.22)] hover:bg-[#c9654c]" data-testid={testId("submit-button")}>{mutation.isPending ? "Saving your request..." : "Send consultation request"}{!mutation.isPending && <ArrowRight className="ml-2 size-4" />}</Button></div>
+      </motion.div>}
+      <p className="flex items-start gap-2 text-xs leading-relaxed text-[#5C6479]" data-testid={testId("privacy-note")}><ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#1A5E72]" /> No payment is taken now. Dr. Nisha's team confirms the final time personally.</p>
     </form>
   );
 }
@@ -286,7 +289,7 @@ export default function Home() {
       <header className="absolute inset-x-0 top-10 z-40 border-0 bg-transparent px-4 py-3 sm:px-6 lg:px-10" data-testid="site-header">
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between rounded-sm bg-white px-5 shadow-[0_12px_35px_rgba(23,60,58,0.12)] sm:px-8 lg:px-6">
           <a href="#top" className="group flex items-center gap-3" data-testid="brand-home-link">
-            <span className="flex size-9 items-center justify-center rounded-full bg-[#0E776C] text-white transition-transform duration-300 group-hover:rotate-6"><HeartHandshake className="size-4" /></span>
+            <span className="size-11 overflow-hidden rounded-full border border-[#D9DFD4] bg-[#FFFDF8] shadow-sm transition-transform duration-300 group-hover:rotate-3"><img src={AMEYA_LOGO_URL} alt="Ameya Consultancy woman and leaf logo" className="size-full scale-125 object-cover" data-testid="header-brand-logo" /></span>
             <span><span className="block font-serif text-lg font-semibold leading-none text-[#164D59]" data-testid="brand-name">Ameya</span><span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.22em] text-[#0E776C]" data-testid="brand-tagline">Her Health Connect</span></span>
           </a>
           <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation" data-testid="desktop-navigation">
@@ -337,7 +340,7 @@ export default function Home() {
         <section id="faq" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-12 lg:py-32" data-testid="faq-section"><div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:gap-24"><Reveal><p className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-[#E07A5F]" data-testid="faq-eyebrow">A few answers</p><h2 className="font-serif text-4xl leading-tight text-[#114B5F] sm:text-5xl" data-testid="faq-heading">Before we meet.</h2><p className="mt-5 max-w-sm text-lg leading-relaxed text-[#5C6479]" data-testid="faq-intro">Good care starts with clarity. Here are a few things patients often want to know.</p></Reveal><Reveal className="divide-y divide-[#E5DEC9] border-y border-[#E5DEC9]" delay={0.1}>{faqs.map((faq, index) => <div key={faq.question} data-testid={`faq-item-${index + 1}`}><button type="button" aria-expanded={openFaq === index} onClick={() => setOpenFaq(openFaq === index ? -1 : index)} className="flex min-h-16 w-full items-center justify-between gap-5 py-5 text-left font-serif text-xl text-[#114B5F]" data-testid={`faq-question-${index + 1}`}>{faq.question}<ChevronDown className={`size-5 shrink-0 text-[#E07A5F] transition-transform duration-300 ${openFaq === index ? "rotate-180" : ""}`} /></button>{openFaq === index && <p className="max-w-2xl pb-6 pr-8 text-sm leading-relaxed text-[#5C6479]" data-testid={`faq-answer-${index + 1}`}>{faq.answer}</p>}</div>)}</Reveal></div></section>
       </main>
 
-      <footer className="bg-[#114B5F] text-white" data-testid="site-footer"><div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-12"><div className="grid gap-10 border-b border-white/15 pb-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]"><div><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-full bg-[#E07A5F] text-white"><HeartHandshake className="size-5" /></span><span className="font-serif text-xl" data-testid="footer-brand">Ameya Consultancy</span></div><p className="mt-5 max-w-sm text-sm leading-relaxed text-white/65" data-testid="footer-description">Her Health Connect—a private space for expert women's health conversations with Dr. Nisha Ghelani.</p></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-contact-label">Contact</p><div className="mt-4 space-y-3 text-sm text-white/75"><a href="tel:+916355734167" className="flex items-center gap-2 hover:text-white" data-testid="footer-phone-link"><Phone className="size-4" /> +91 63557 34167</a><a href="mailto:nishaghelani78@gmail.com" className="flex items-center gap-2 break-all hover:text-white" data-testid="footer-email-link"><Mail className="size-4" /> nishaghelani78@gmail.com</a></div></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-availability-label">Availability</p><p className="mt-4 text-sm leading-relaxed text-white/75" data-testid="footer-availability-copy">Tuesday, Thursday & Saturday<br />By appointment only</p><Button onClick={scrollToBooking} variant="outline" className="mt-5 rounded-full border-white/30 bg-transparent text-white hover:bg-white hover:text-[#114B5F]" data-testid="footer-book-button">Request a time <ArrowUpRight className="ml-1.5 size-4" /></Button></div></div><div className="mt-8 rounded-2xl border border-[#F4C2B4]/35 bg-[#0d3b4b] p-5" data-testid="statutory-notice"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]">Important care notice</p><p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/75">Ameya Consultancy is for planned consultations and expert advice. It is not an emergency service. For acute pain, heavy bleeding, breathing difficulty, or any obstetric emergency, please contact your nearest hospital emergency department immediately.</p></div><p className="mt-8 text-xs text-white/45" data-testid="footer-copyright">© {new Date().getFullYear()} Ameya Consultancy · Dr. Nisha Ghelani, MD (Ob & Gyn)</p></div></footer>
+      <footer className="bg-[#114B5F] text-white" data-testid="site-footer"><div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-12"><div className="grid gap-10 border-b border-white/15 pb-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]"><div><div className="flex items-center gap-3"><span className="size-14 overflow-hidden rounded-full border border-white/20 bg-[#FFFDF8]"><img src={AMEYA_LOGO_URL} alt="Ameya Consultancy woman and leaf logo" className="size-full scale-125 object-cover" data-testid="footer-brand-logo" /></span><span className="font-serif text-xl" data-testid="footer-brand">Ameya Consultancy</span></div><p className="mt-5 max-w-sm text-sm leading-relaxed text-white/65" data-testid="footer-description">Her Health Connect—a private space for expert women's health conversations with Dr. Nisha Ghelani.</p></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-contact-label">Contact</p><div className="mt-4 space-y-3 text-sm text-white/75"><a href="tel:+916355734167" className="flex items-center gap-2 hover:text-white" data-testid="footer-phone-link"><Phone className="size-4" /> +91 63557 34167</a><a href="mailto:nishaghelani78@gmail.com" className="flex items-center gap-2 break-all hover:text-white" data-testid="footer-email-link"><Mail className="size-4" /> nishaghelani78@gmail.com</a></div></div><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]" data-testid="footer-availability-label">Availability</p><p className="mt-4 text-sm leading-relaxed text-white/75" data-testid="footer-availability-copy">Tuesday, Thursday & Saturday<br />By appointment only</p><Button onClick={scrollToBooking} variant="outline" className="mt-5 rounded-full border-white/30 bg-transparent text-white hover:bg-white hover:text-[#114B5F]" data-testid="footer-book-button">Request a time <ArrowUpRight className="ml-1.5 size-4" /></Button></div></div><div className="mt-8 rounded-2xl border border-[#F4C2B4]/35 bg-[#0d3b4b] p-5" data-testid="statutory-notice"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F4C2B4]">Important care notice</p><p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/75">Ameya Consultancy is for planned consultations and expert advice. It is not an emergency service. For acute pain, heavy bleeding, breathing difficulty, or any obstetric emergency, please contact your nearest hospital emergency department immediately.</p></div><p className="mt-8 text-xs text-white/45" data-testid="footer-copyright">© {new Date().getFullYear()} Ameya Consultancy · Dr. Nisha Ghelani, MD (Ob & Gyn)</p></div></footer>
 
       <div className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-2 gap-2 border-t border-[#E5DEC9] bg-[#FAF8F5]/95 p-3 shadow-[0_-10px_30px_rgba(17,75,95,0.12)] backdrop-blur-md md:hidden" data-testid="mobile-quick-action-bar"><a href="tel:+916355734167" className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#114B5F] bg-transparent text-sm font-semibold text-[#114B5F]" data-testid="mobile-call-doctor-button"><Phone className="size-4" /> Call doctor</a><Button onClick={() => setMobileBookingOpen(true)} className="min-h-12 rounded-full bg-[#E07A5F] text-sm text-white hover:bg-[#c9654c]" data-testid="mobile-book-button"><CalendarDays className="mr-2 size-4" /> Book consultation</Button></div>
 
