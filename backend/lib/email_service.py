@@ -5,8 +5,14 @@ import os
 import smtplib
 import urllib.parse
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+env_path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
 DOCTOR_EMAIL = os.environ.get("DOCTOR_EMAIL", "nishaghelani78@gmail.com")
 DOCTOR_TEST_EMAIL = DOCTOR_EMAIL
@@ -185,6 +191,7 @@ async def send_appointment_emails(
     reference: str,
     attachment_ids: list[str] | None = None,
     payment_id: str | None = None,
+    order_id: str | None = None,
     amount_paid: int = 1000,
 ) -> bool:
     """
@@ -199,6 +206,7 @@ async def send_appointment_emails(
     import urllib.error
     import ssl
 
+    receipt_date_str = datetime.now(timezone.utc).strftime("%d %b %Y")
     is_virtual = consultation_type == "video_consultation"
     type_label = "Virtual Consultation (Google Meet)" if is_virtual else "In-Person Clinic Visit"
 
@@ -315,14 +323,107 @@ async def send_appointment_emails(
                       <td style="padding:6px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{preferred_time} (IST)</td>
                     </tr>
                     <tr>
-                      <td style="padding:6px 0; font-size:14px; color:#555555;">Payment Receipt</td>
-                      <td style="padding:6px 0; font-size:14px; color:#0E776C; font-weight:700;">₹{amount_paid:,} Paid (UPI/Card · {payment_id or 'Verified'})</td>
+                      <td style="padding:6px 0; font-size:14px; color:#555555;">Consultation Fee</td>
+                      <td style="padding:6px 0; font-size:14px; color:#0E776C; font-weight:700;">₹{amount_paid:,} Paid in Full</td>
                     </tr>
                   </table>
                   <p style="font-size:12px; color:#777777; margin:10px 0 0 0; font-style:italic;">
                     The attached calendar invite auto-adjusts to your local timezone.
                   </p>
                 </td></tr>
+              </table>
+
+              <!-- Professional Tax Invoice & Payment Receipt Card -->
+              <table role="presentation" class="info-card" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px; background:#FFFFFF; border:1px solid #D0DBCE; border-radius:10px; overflow:hidden;">
+                <!-- Receipt Header Ribbon -->
+                <tr>
+                  <td style="background:#0E776C; padding:12px 18px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#A7E8DE;">Official Payment Receipt</div>
+                          <div style="font-size:15px; font-weight:700; color:#FFFFFF; margin-top:2px;">Ameya Consultancy · Tax Invoice</div>
+                        </td>
+                        <td align="right" style="text-align:right;">
+                          <span style="display:inline-block; background:#25D366; color:#0A4C22; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:3px 10px; border-radius:12px;">✓ PAID IN FULL</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Receipt Body -->
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <!-- Metadata Grid -->
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #ECE7DA; padding-bottom:12px; margin-bottom:12px;">
+                      <tr>
+                        <td style="width:52%; vertical-align:top; font-size:12px; color:#555555; line-height:1.6;">
+                          <strong style="color:#164D59;">Receipt No:</strong> <span style="font-family:Menlo,monospace; font-weight:700; color:#1A1A2E;">RCPT-{reference}</span><br>
+                          <strong style="color:#164D59;">Date Issued:</strong> {receipt_date_str}<br>
+                          <strong style="color:#164D59;">Doctor:</strong> Dr. Nisha Ghelani, MD (Ob &amp; Gyn)
+                        </td>
+                        <td style="width:48%; vertical-align:top; text-align:right; font-size:12px; color:#555555; line-height:1.6;">
+                          <strong style="color:#164D59;">Billed To:</strong> {patient_name}<br>
+                          <strong style="color:#164D59;">Phone:</strong> {patient_phone}<br>
+                          <strong style="color:#164D59;">Email:</strong> {patient_email}
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Itemized Charges -->
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:13px;">
+                      <thead>
+                        <tr style="border-bottom:1px solid #ECE7DA;">
+                          <th align="left" style="padding:4px 0 8px 0; color:#888888; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:1px;">Service Description</th>
+                          <th align="right" style="padding:4px 0 8px 0; color:#888888; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:1px; width:28%;">Amount (INR)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style="border-bottom:1px solid #F4F1E8;">
+                          <td style="padding:10px 0;">
+                            <div style="font-weight:700; color:#1A1A2E;">Specialist Medical Consultation (45 Mins)</div>
+                            <div style="font-size:11px; color:#666666; margin-top:2px;">1:1 Clinical Assessment ({type_label}), Care Focus: {focus_area}, History &amp; Report Review, Digital Prescription</div>
+                          </td>
+                          <td align="right" style="padding:10px 0; font-weight:700; color:#1A1A2E; vertical-align:top;">
+                            ₹{amount_paid:,.2f}
+                          </td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #F4F1E8;">
+                          <td style="padding:7px 0; font-size:12px; color:#666666;">
+                            Administrative &amp; Platform Handling
+                          </td>
+                          <td align="right" style="padding:7px 0; font-size:12px; color:#0E776C; font-weight:600;">
+                            Included (₹0.00)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:12px 0 4px 0; font-size:14px; font-weight:800; color:#164D59;">
+                            Total Amount Paid
+                          </td>
+                          <td align="right" style="padding:12px 0 4px 0; font-size:17px; font-weight:800; color:#0E776C; font-family:Menlo,monospace;">
+                            ₹{amount_paid:,.2f}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <!-- Transaction details bar -->
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px; background:#F8FAF9; border:1px dashed #B8DAD2; border-radius:6px;">
+                      <tr>
+                        <td style="padding:10px 12px; font-size:11px; color:#444444; line-height:1.6;">
+                          <strong style="color:#164D59;">Payment Mode:</strong> Online (Razorpay Secured · UPI / Card / Netbanking)<br>
+                          <strong style="color:#164D59;">Transaction ID:</strong> <span style="font-family:Menlo,monospace; font-weight:700; color:#0E776C;">{payment_id or 'Verified'}</span>
+                          {f'<br><strong style="color:#164D59;">Razorpay Order ID:</strong> <span style="font-family:Menlo,monospace; color:#555555;">{order_id}</span>' if order_id else ''}
+                        </td>
+                      </tr>
+                    </table>
+
+                    <p style="margin:12px 0 0 0; font-size:10.5px; color:#888888; text-align:center; line-height:1.4;">
+                      This is an official computer-generated receipt issued by Ameya Consultancy. Valid for personal health expenditure records and medical insurance reimbursement claim submissions.
+                    </p>
+                  </td>
+                </tr>
               </table>
 
               {f'''
@@ -511,8 +612,8 @@ async def send_appointment_emails(
     </html>
     """
 
-    patient_subject = f"Confirmed: Your Consultation with Dr. Nisha Ghelani ({reference})"
-    doctor_subject = f"📅 New Booking: {patient_name} — {preferred_date} at {preferred_time} ({reference})"
+    patient_subject = f"Appointment Confirmed & Payment Receipt · Ref {reference} | Dr. Nisha Ghelani"
+    doctor_subject = f"⚡ Paid Booking (₹{amount_paid:,}): {patient_name} — {preferred_date} at {preferred_time} ({reference})"
     from_email = os.environ.get("RESEND_FROM_EMAIL", "Ameya Consultancy <appointments@ameyaconsultancy.com>")
 
     b64_ics = base64.b64encode(ics_content.encode("utf-8")).decode("utf-8")

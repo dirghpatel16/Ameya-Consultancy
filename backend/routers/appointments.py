@@ -285,6 +285,7 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
             reference=reference,
             attachment_ids=payload.attachment_ids,
             payment_id=payload.razorpay_payment_id,
+            order_id=payload.razorpay_order_id,
             amount_paid=CONSULTATION_FEE_INR,
         )
     except Exception as email_err:
