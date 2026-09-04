@@ -23,7 +23,11 @@
       "dest": "frontend/assets/$1"
     },
     {
-      "src": "/(.*\\.(?:js|css|ico|png|jpg|jpeg|svg|woff2|woff|ttf|webp|json|txt))",
+      "src": "/(google[a-zA-Z0-9_-]+\\.html)",
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/(.*\\.(?:js|css|ico|png|jpg|jpeg|svg|woff2|woff|ttf|webp|json|txt|xml))",
       "dest": "frontend/$1"
     },
     {
