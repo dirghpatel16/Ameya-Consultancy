@@ -179,6 +179,12 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
         )
 
     # 2. Upfront payment verification via Razorpay
+    logger.info(
+        "Verifying upfront payment: order=%s, payment=%s, has_sig=%s",
+        payload.razorpay_order_id,
+        payload.razorpay_payment_id,
+        bool(payload.razorpay_signature),
+    )
     if not (payload.razorpay_order_id and payload.razorpay_payment_id and payload.razorpay_signature):
         raise HTTPException(
             status_code=402,

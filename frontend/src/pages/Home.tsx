@@ -344,18 +344,28 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
           },
         },
         handler: async (response: {
-          razorpay_order_id: string;
+          razorpay_order_id?: string;
           razorpay_payment_id: string;
-          razorpay_signature: string;
+          razorpay_signature?: string;
         }) => {
+          console.log("[Razorpay] payment response received:", response);
           try {
+            const orderId = response.razorpay_order_id || order.order_id;
+            const paymentId = response.razorpay_payment_id;
+            const signature = response.razorpay_signature || "";
+
+            console.log("[Razorpay] finalizing appointment with orderId:", orderId, "paymentId:", paymentId);
+
             const appointment = await apiPost<Appointment>("/appointments", {
               ...form,
               attachment_ids: attachmentIds,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+              razorpay_order_id: orderId,
+              razorpay_payment_id: paymentId,
+              razorpay_signature: signature,
             });
+
+            console.log("[Razorpay] appointment successfully created:", appointment);
+
             toast.success("Payment Received & Appointment Confirmed!", {
               description: `Reference ${appointment.reference}`,
             });
@@ -366,7 +376,12 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
             bookingOptions.refetch();
             onCreated(appointment);
           } catch (createErr: any) {
-            toast.error(createErr?.message || "Failed to finalize appointment. Please contact support.");
+            console.error("[Razorpay] failed to finalize appointment:", createErr);
+            const errDetail =
+              createErr?.body?.detail ||
+              createErr?.message ||
+              "Failed to finalize appointment. Please contact support.";
+            toast.error(typeof errDetail === "string" ? errDetail : JSON.stringify(errDetail));
           } finally {
             setIsPaying(false);
           }
@@ -877,7 +892,9 @@ export default function Home() {
   const handleCreated = (appointment: Appointment) => {
     setConfirmedAppointment(appointment);
     setBookingOpen(false);
-    setConfirmationOpen(true);
+    setTimeout(() => {
+      setConfirmationOpen(true);
+    }, 150);
   };
 
   return (

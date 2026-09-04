@@ -100,6 +100,12 @@ def verify_razorpay_signature(order_id: str, payment_id: str, signature: str) ->
     Verifies Razorpay HMAC SHA256 signature for payment authenticity.
     """
     if not (order_id and payment_id and signature):
+        logger.warning(
+            "verify_razorpay_signature missing required param: order=%s, pay=%s, has_sig=%s",
+            order_id,
+            payment_id,
+            bool(signature),
+        )
         return False
 
     key_secret = os.environ.get("RAZORPAY_KEY_SECRET", RAZORPAY_KEY_SECRET)
@@ -113,8 +119,12 @@ def verify_razorpay_signature(order_id: str, payment_id: str, signature: str) ->
     is_valid = hmac.compare_digest(expected_signature, signature)
     if not is_valid:
         logger.warning(
-            "Razorpay signature mismatch for order %s and payment %s",
+            "Razorpay signature mismatch: expected %s, got %s for order %s and payment %s",
+            expected_signature,
+            signature,
             order_id,
             payment_id,
         )
+    else:
+        logger.info("Razorpay signature successfully verified for order %s and payment %s", order_id, payment_id)
     return is_valid
