@@ -4,20 +4,5 @@ Public women's health consultation website for Dr. Nisha Ghelani, MD (Ob & Gyn),
 
 ## Current Setup & Configuration
 - **Doctor Production Email**: Set to Dr. Nisha Ghelani (`nishaghelani78@gmail.com`) in `email_service.py` and via `DOCTOR_EMAIL` environment variable.
-- **Google Calendar API Integration**: Configured with OAuth2 refresh token to dynamically create events and genuine Google Meet rooms (`meet.google.com/xxx-yyyy-zzz`).
+- **Google Calendar API Integration**: Fully connected to Dr. Nisha's Google Account (`nishaghelani78@gmail.com`) with OAuth2 client `246377409601-j2kr12i8fgjuguhu9tibkoodm9kf4e13.apps.googleusercontent.com` and `GOOGLE_REFRESH_TOKEN`. Dynamically creates calendar events and live Google Meet links on Dr. Nisha's calendar.
 - **Resend Email Service**: Configured with `RESEND_API_KEY` and official sender `Ameya Consultancy <appointments@ameyaconsultancy.com>`. Sends patient confirmation voice to patient and doctor alert voice (with uploaded medical report attachments) to Dr. Nisha.
-
-## Transition Checklist to Dr. Nisha Ghelani's Email
-When ready to transfer live notifications to Dr. Nisha:
-1. **Google Calendar API**:
-   - In Google Cloud Console (`Ameya Consultancy` project), under OAuth Consent Screen -> Test Users, add `nishaghelani78@gmail.com`.
-   - Authorize `Google Calendar API` via Google OAuth Playground using Dr. Nisha's Google account to obtain her `GOOGLE_REFRESH_TOKEN`.
-   - Update `GOOGLE_REFRESH_TOKEN` on Vercel:
-     `vercel env add GOOGLE_REFRESH_TOKEN production`
-2. **Doctor Email Environment Variable**:
-   - Update `DOCTOR_EMAIL` on Vercel to Dr. Nisha's email:
-     `printf "nishaghelani78@gmail.com" | vercel env add DOCTOR_EMAIL production --yes`
-3. **Resend Domain Verification (to deliver to patients & Dr. Nisha)**:
-   - Add domain `ameyaconsultancy.com` to Resend (`resend.com/domains`) and add the 3 DNS records (DKIM/SPF).
-   - Set `RESEND_FROM_EMAIL="Ameya Consultancy <consultation@ameyaconsultancy.com>"` on Vercel.
-   - Alternatively: use Gmail App Password for `nishaghelani78@gmail.com` (`SMTP_USER` & `SMTP_PASSWORD`).
