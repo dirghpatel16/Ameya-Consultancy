@@ -161,7 +161,7 @@ async def create_appointment(payload: AppointmentCreate) -> Appointment:
     )
     await db.appointments.insert_one(appointment.model_dump())
 
-    # Send confirmation email + calendar invite (.ics) to patient & dirgh8011patel@gmail.com
+    # Send confirmation email + calendar invite (.ics) to patient & Dr. Nisha Ghelani (nishaghelani78@gmail.com)
     try:
         await send_appointment_emails(
             appointment_id=appointment.id,

@@ -3,10 +3,9 @@
 Public women's health consultation website for Dr. Nisha Ghelani, MD (Ob & Gyn), 22 years of experience. Visitors can explore care pathways, weekly availability, FAQs, and submit a consultation request. Requests are saved to MongoDB through `POST /api/appointments`, validated for Tuesday/Thursday/Saturday availability, and confirmed with an AMY reference.
 
 ## Current Setup & Configuration
-- **Doctor Testing Email**: Currently set to `dirgh8011patel@gmail.com` via `DOCTOR_EMAIL` environment variable fallback.
-- **Production Doctor Target Email**: `nishaghelani78@gmail.com`.
+- **Doctor Production Email**: Set to Dr. Nisha Ghelani (`nishaghelani78@gmail.com`) in `email_service.py` and via `DOCTOR_EMAIL` environment variable.
 - **Google Calendar API Integration**: Configured with OAuth2 refresh token to dynamically create events and genuine Google Meet rooms (`meet.google.com/xxx-yyyy-zzz`).
-- **Resend Email Service**: Configured with `RESEND_API_KEY`. Sends patient confirmation voice to patient and doctor alert voice (with uploaded medical report attachments) to the doctor.
+- **Resend Email Service**: Configured with `RESEND_API_KEY` and official sender `Ameya Consultancy <appointments@ameyaconsultancy.com>`. Sends patient confirmation voice to patient and doctor alert voice (with uploaded medical report attachments) to Dr. Nisha.
 
 ## Transition Checklist to Dr. Nisha Ghelani's Email
 When ready to transfer live notifications to Dr. Nisha:

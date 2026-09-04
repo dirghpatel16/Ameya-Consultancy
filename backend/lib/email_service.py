@@ -8,7 +8,8 @@ from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 
-DOCTOR_TEST_EMAIL = os.environ.get("DOCTOR_EMAIL", "dirgh8011patel@gmail.com")
+DOCTOR_EMAIL = os.environ.get("DOCTOR_EMAIL", "nishaghelani78@gmail.com")
+DOCTOR_TEST_EMAIL = DOCTOR_EMAIL
 CLINIC_NAME = "Ameya Consultancy — Her Health Connect"
 CLINIC_PHONE = "+91 63557 34167"
 CLINIC_ADDRESS = "Ameya Consultancy, Gujarat, India"
@@ -186,7 +187,7 @@ async def send_appointment_emails(
 ) -> bool:
     """
     Send confirmation email with interactive Google Calendar invite (.ics)
-    to both patient and doctor (dirgh8011patel@gmail.com).
+    to both patient and doctor (Dr. Nisha Ghelani: nishaghelani78@gmail.com).
     For the doctor, attaches any uploaded medical reports/scans.
     """
     import base64
