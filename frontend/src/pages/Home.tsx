@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
@@ -51,6 +51,9 @@ interface AppointmentCreate {
   preferred_time: string;
   notes: string;
   attachment_ids: string[];
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
 }
 
 interface Appointment extends AppointmentCreate {
@@ -61,6 +64,10 @@ interface Appointment extends AppointmentCreate {
   meeting_url: string | null;
   calendar_url?: string | null;
   whatsapp_url?: string | null;
+  payment_status?: "paid" | "pending" | "exempt";
+  payment_id?: string | null;
+  amount_paid?: number;
+  currency?: string;
   created_at: string;
 }
 
@@ -76,6 +83,16 @@ interface BookingOptions {
   available_dates: AvailableDate[];
   available_times: string[];
   google_meet_enabled: boolean;
+  consultation_fee_inr?: number;
+  booked_slots?: Record<string, string[]>;
+}
+
+interface CreateOrderResponse {
+  order_id: string;
+  amount: number;
+  amount_inr: number;
+  currency: string;
+  key_id: string;
 }
 
 interface AppointmentAttachment {
@@ -135,16 +152,20 @@ const focusAreas = [
 
 const faqs = [
   {
+    question: "What is the consultation fee and payment procedure?",
+    answer: "The consultation fee is ₹1,000 all-inclusive, paid securely upfront online via Razorpay (UPI, Google Pay, PhonePe, credit/debit cards, net banking). Your chosen time slot is reserved immediately upon successful payment.",
+  },
+  {
     question: "What happens after I book?",
-    answer: "Your appointment preference is saved securely and a reference number is shown immediately. Dr. Nisha's team will reach out on the phone or email you provided to confirm the details.",
+    answer: "Your consultation slot is locked instantly upon payment. You receive an immediate booking reference, an email with your Google Meet link and calendar invite (.ics), and WhatsApp notification.",
   },
   {
     question: "How will my Google Meet consultation work?",
-    answer: "Choose an available date and exact time in the booking calendar. Once Google Calendar is connected, the Meet link will be created immediately and sent to your email.",
+    answer: "Choose an available date and exact time in the booking calendar. The Google Meet link is automatically created on Dr. Nisha's official calendar and emailed to you immediately with an interactive calendar invite.",
   },
   {
     question: "Can I bring reports or previous prescriptions?",
-    answer: "Absolutely. For an expert opinion, keep your recent reports, scans, prescriptions, and a short list of questions ready for the conversation.",
+    answer: "Absolutely. You can upload up to 3 medical reports or prescriptions directly during booking, or keep them handy during your consultation.",
   },
   {
     question: "Is this service for urgent medical problems?",
@@ -243,33 +264,12 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
   const [dateError, setDateError] = useState("");
   const [calendarIndex, setCalendarIndex] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
+  const [isPaying, setIsPaying] = useState(false);
   const bookingOptions = useQuery({
     queryKey: ["booking-options"],
     queryFn: fetchBookingOptions,
     retry: false,
     staleTime: 15 * 60 * 1000,
-  });
-  const mutation = useMutation({
-    mutationFn: async (payload: AppointmentCreate) => {
-      const attachments: AppointmentAttachment[] = [];
-      for (const file of files) {
-        const body = new FormData();
-        body.append("file", file);
-        attachments.push(await apiUpload<AppointmentAttachment>("/appointments/attachments", body));
-      }
-      return apiPost<Appointment>("/appointments", {
-        ...payload,
-        attachment_ids: attachments.map((attachment) => attachment.id),
-      });
-    },
-    onSuccess: (appointment) => {
-      toast.success("Appointment preference saved", { description: `Reference ${appointment.reference}` });
-      setForm(initialForm);
-      setDateError("");
-      setFiles([]);
-      setCalendarIndex(0);
-      onCreated(appointment);
-    },
   });
 
   const updateField = (field: keyof AppointmentCreate) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -277,7 +277,7 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
     if (field === "preferred_date") setDateError("");
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.preferred_date) {
       setDateError("Please choose a preferred consultation date.");
@@ -288,8 +288,108 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
       setDateError("Please choose Tuesday, Thursday, or Saturday.");
       return;
     }
+
+    // Double-booking validation against latest booked slots
+    const bookedOnDate = bookingOptions.data?.booked_slots?.[form.preferred_date] ?? [];
+    if (bookedOnDate.includes(form.preferred_time)) {
+      toast.error("This consultation time is already booked. Please choose another available slot.");
+      return;
+    }
+
     setDateError("");
-    mutation.mutate(form);
+    setIsPaying(true);
+
+    try {
+      // 1. Upload reports/attachments first if any
+      const attachmentIds: string[] = [];
+      for (const file of files) {
+        const body = new FormData();
+        body.append("file", file);
+        const uploaded = await apiUpload<AppointmentAttachment>("/appointments/attachments", body);
+        attachmentIds.push(uploaded.id);
+      }
+
+      // 2. Create Razorpay order (₹1,000 upfront)
+      const order = await apiPost<CreateOrderResponse>("/appointments/create-order", {
+        consultation_type: form.consultation_type,
+        focus_area: form.focus_area,
+        preferred_date: form.preferred_date,
+        preferred_time: form.preferred_time,
+        full_name: form.full_name,
+        email: form.email,
+        phone: form.phone,
+      });
+
+      // 3. Configure and trigger Razorpay Checkout popup
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Ameya Consultancy",
+        description: `Consultation (${form.preferred_date} · ${form.preferred_time})`,
+        image: "/logo.jpeg",
+        order_id: order.order_id,
+        prefill: {
+          name: form.full_name,
+          email: form.email,
+          contact: form.phone,
+        },
+        theme: {
+          color: "#0E776C",
+        },
+        modal: {
+          ondismiss: () => {
+            setIsPaying(false);
+            toast.info("Payment cancelled. Your consultation was not reserved.");
+          },
+        },
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            const appointment = await apiPost<Appointment>("/appointments", {
+              ...form,
+              attachment_ids: attachmentIds,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success("Payment Received & Appointment Confirmed!", {
+              description: `Reference ${appointment.reference}`,
+            });
+            setForm(initialForm);
+            setDateError("");
+            setFiles([]);
+            setCalendarIndex(0);
+            bookingOptions.refetch();
+            onCreated(appointment);
+          } catch (createErr: any) {
+            toast.error(createErr?.message || "Failed to finalize appointment. Please contact support.");
+          } finally {
+            setIsPaying(false);
+          }
+        },
+      };
+
+      // @ts-ignore
+      if (typeof window !== "undefined" && window.Razorpay) {
+        // @ts-ignore
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        throw new Error("Payment gateway could not be loaded. Please refresh and try again.");
+      }
+    } catch (err: any) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.error("This slot was just booked by another patient. Please choose another time.");
+        bookingOptions.refetch();
+      } else {
+        toast.error(err?.message || "Could not initiate payment. Please verify your details.");
+      }
+      setIsPaying(false);
+    }
   };
 
   const handleFiles = (event: ChangeEvent<HTMLInputElement>) => {
@@ -316,12 +416,6 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
   const daysInMonth = monthStart ? new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate() : 0;
   const firstWeekday = monthStart?.getDay() ?? 0;
   const availableDateSet = new Set(availableDates.map((option) => option.date));
-
-  const errorMessage = mutation.error instanceof ApiError && mutation.error.status === 422
-    ? "Please check the selected date, time, files, and contact details."
-    : mutation.error
-      ? "We couldn't save the appointment. Please call or WhatsApp Dr. Nisha directly."
-      : "";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-7" data-testid={testId("booking-form")}>
@@ -550,24 +644,33 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
             const { localTime, dateShift } = getSlotInUserTimezone(form.preferred_date, time, userTimeZone);
             const isSelected = form.preferred_time === time;
             const isDifferentTz = userTimeZone !== "Asia/Kolkata";
+            const bookedSlots = bookingOptions.data?.booked_slots?.[form.preferred_date] ?? [];
+            const isBooked = bookedSlots.includes(time);
 
             return (
               <button
                 key={time}
                 type="button"
+                disabled={isBooked}
                 aria-pressed={isSelected}
-                onClick={() => setForm((current) => ({ ...current, preferred_time: time }))}
+                onClick={() => !isBooked && setForm((current) => ({ ...current, preferred_time: time }))}
                 className={`min-h-12 rounded-xl border p-2 text-center transition-all duration-200 ${
-                  isSelected
+                  isBooked
+                    ? "cursor-not-allowed border-[#E5DEC9] bg-[#F4F1E8] text-[#9A9084] opacity-60"
+                    : isSelected
                     ? "border-[#0E776C] bg-[#0E776C] text-white shadow-md font-bold"
                     : "border-[#D9DFD4] bg-white text-[#263D3A] hover:border-[#0E776C]"
                 }`}
                 data-testid={testId(`time-${time.replace(/[: ]/g, "-").toLowerCase()}`)}
               >
-                <span className="block text-xs sm:text-sm font-bold">
+                <span className={`block text-xs sm:text-sm font-bold ${isBooked ? "line-through text-[#8C827A]" : ""}`}>
                   {isDifferentTz ? localTime : time}
                 </span>
-                {isDifferentTz ? (
+                {isBooked ? (
+                  <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-wider text-[#B84F3A]">
+                    Booked
+                  </span>
+                ) : isDifferentTz ? (
                   <span className={`mt-0.5 block text-[10px] ${isSelected ? "text-white/80" : "text-[#52706B]"}`}>
                     {time} IST {dateShift ? `· ${dateShift}` : ""}
                   </span>
@@ -687,24 +790,71 @@ function BookingForm({ onCreated, testIdPrefix }: BookingFormProps) {
         </div>
       </section>
 
-      {errorMessage && (
-        <p className="text-xs font-medium text-[#B84F3A]" role="alert" data-testid={testId("form-error")}>
-          {errorMessage}
-        </p>
-      )}
+      {/* Consultation Fee & Breakdown Card */}
+      <div className="rounded-2xl border border-[#B8DAD2] bg-[#F4F9F8] p-4 sm:p-5 space-y-3" data-testid={testId("fee-summary-card")}>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#0E776C]">
+              Consultation Fee
+            </span>
+            <h5 className="font-serif text-base sm:text-lg font-bold text-[#164D59]">
+              {form.consultation_type === "video_consultation" ? "Virtual Consultation (Google Meet)" : "In-Person Clinic Visit"}
+            </h5>
+          </div>
+          <div className="text-right">
+            <span className="font-mono text-2xl sm:text-3xl font-bold text-[#164D59]">
+              ₹1,000
+            </span>
+            <span className="block text-[10px] font-medium text-[#52706B]">All inclusive</span>
+          </div>
+        </div>
+
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-[#D0E2DD] pt-3 text-xs text-[#35504D]">
+          <li className="flex items-center gap-2">
+            <Check className="size-3.5 text-[#0E776C] shrink-0" />
+            <span>45-Min dedicated 1:1 consultation</span>
+          </li>
+          <li className="flex items-center gap-2">
+            <Check className="size-3.5 text-[#0E776C] shrink-0" />
+            <span>Review of previous reports & history</span>
+          </li>
+          <li className="flex items-center gap-2">
+            <Check className="size-3.5 text-[#0E776C] shrink-0" />
+            <span>Digital prescription & care summary</span>
+          </li>
+          <li className="flex items-center gap-2">
+            <Check className="size-3.5 text-[#0E776C] shrink-0" />
+            <span>Instant calendar invite (.ics) & Meet link</span>
+          </li>
+        </ul>
+      </div>
 
       <Button
         type="submit"
-        disabled={mutation.isPending}
-        className="h-12 sm:h-13 w-full rounded-full bg-[#E07A5F] text-sm sm:text-base font-bold text-white shadow-[0_10px_24px_rgba(224,122,95,0.22)] hover:bg-[#c9654c]"
+        disabled={isPaying}
+        className="h-12 sm:h-14 w-full rounded-full bg-[#E07A5F] text-sm sm:text-base font-bold text-white shadow-[0_10px_24px_rgba(224,122,95,0.25)] hover:bg-[#c9654c] disabled:opacity-60 transition-all duration-200"
         data-testid={testId("submit-button")}
       >
-        {mutation.isPending ? "Confirming appointment..." : "Confirm & Book Appointment"}
-        {!mutation.isPending && <ArrowRight className="ml-2 size-4" />}
+        {isPaying ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            Opening Secure Payment...
+          </span>
+        ) : (
+          <span className="flex items-center justify-center gap-2">
+            <span>Pay ₹1,000 & Confirm Appointment</span>
+            <ArrowRight className="size-4" />
+          </span>
+        )}
       </Button>
-      <p className="flex items-start gap-2 text-[11px] leading-relaxed text-[#5C6479]" data-testid={testId("privacy-note")}>
-        <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[#1A5E72]" /> Reports are stored privately with this appointment. No payment is taken now.
-      </p>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 text-[11px] text-[#5C6479]" data-testid={testId("privacy-note")}>
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck className="size-3.5 shrink-0 text-[#0E776C]" />
+          Instant reservation via 256-bit encrypted Razorpay
+        </span>
+        <span className="text-[10px] text-[#839788]">UPI · Google Pay · PhonePe · Cards · Netbanking</span>
+      </div>
     </form>
   );
 }
@@ -864,6 +1014,12 @@ export default function Home() {
                     📍 <strong>Your Local Time:</strong> {localSlotInfo.localTime} ({userTimeZone}) {localSlotInfo.dateShift ? `· ${localSlotInfo.dateShift}` : ""}
                   </div>
                 )}
+              </div>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-[#EAF2F1] px-3.5 py-2.5 text-xs text-[#0E776C] border border-[#B8DAD2]">
+                <span className="font-semibold flex items-center gap-1.5">
+                  <Check className="size-4 text-[#0E776C]" /> Upfront Payment Received
+                </span>
+                <span className="font-bold font-mono text-sm text-[#164D59]">₹1,000 Paid</span>
               </div>
             </div>
 

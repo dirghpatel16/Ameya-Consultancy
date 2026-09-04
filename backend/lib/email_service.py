@@ -184,11 +184,14 @@ async def send_appointment_emails(
     meeting_url: str | None,
     reference: str,
     attachment_ids: list[str] | None = None,
+    payment_id: str | None = None,
+    amount_paid: int = 1000,
 ) -> bool:
     """
     Send confirmation email with interactive Google Calendar invite (.ics)
     to both patient and doctor (Dr. Nisha Ghelani: nishaghelani78@gmail.com).
     For the doctor, attaches any uploaded medical reports/scans.
+    Includes upfront payment receipt (₹1,000 via Razorpay).
     """
     import base64
     import json
@@ -310,6 +313,10 @@ async def send_appointment_emails(
                     <tr>
                       <td style="padding:6px 0; font-size:14px; color:#555555;">Time</td>
                       <td style="padding:6px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{preferred_time} (IST)</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0; font-size:14px; color:#555555;">Payment Receipt</td>
+                      <td style="padding:6px 0; font-size:14px; color:#0E776C; font-weight:700;">₹{amount_paid:,} Paid (UPI/Card · {payment_id or 'Verified'})</td>
                     </tr>
                   </table>
                   <p style="font-size:12px; color:#777777; margin:10px 0 0 0; font-style:italic;">
@@ -455,8 +462,12 @@ async def send_appointment_emails(
                       <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700; border-bottom:1px solid #EDEAD9;">{preferred_date}</td>
                     </tr>
                     <tr>
-                      <td style="padding:7px 0; font-size:14px; color:#555555;">Time</td>
-                      <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700;">{preferred_time} (IST)</td>
+                      <td style="padding:7px 0; font-size:14px; color:#555555; border-bottom:1px solid #EDEAD9;">Time</td>
+                      <td style="padding:7px 0; font-size:14px; color:#1A1A2E; font-weight:700; border-bottom:1px solid #EDEAD9;">{preferred_time} (IST)</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:7px 0; font-size:14px; color:#555555;">Payment Status</td>
+                      <td style="padding:7px 0; font-size:14px; color:#0E776C; font-weight:700;">₹{amount_paid:,} Received (Razorpay: {payment_id or 'Verified'})</td>
                     </tr>
                   </table>
                 </td></tr>
