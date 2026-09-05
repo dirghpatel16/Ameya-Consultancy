@@ -13,8 +13,8 @@ import urllib.request
 
 logger = logging.getLogger("ameya.payment")
 
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_TY2oVdGaLLmUYy")
-RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "g8SXpqXOMQLrWglVmdwtXz4u")
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
 CONSULTATION_FEE_INR = int(os.environ.get("CONSULTATION_FEE_INR", "1000"))
 
 RAZORPAY_ORDERS_URL = "https://api.razorpay.com/v1/orders"
@@ -38,6 +38,9 @@ def create_razorpay_order(
     """
     key_id = os.environ.get("RAZORPAY_KEY_ID", RAZORPAY_KEY_ID)
     key_secret = os.environ.get("RAZORPAY_KEY_SECRET", RAZORPAY_KEY_SECRET)
+    if not key_id or not key_secret:
+        logger.error("Razorpay API credentials not configured in environment.")
+        raise RuntimeError("Payment gateway configuration error.")
     amount_paise = amount_inr * 100
 
     payload = {
@@ -109,6 +112,9 @@ def verify_razorpay_signature(order_id: str, payment_id: str, signature: str) ->
         return False
 
     key_secret = os.environ.get("RAZORPAY_KEY_SECRET", RAZORPAY_KEY_SECRET)
+    if not key_secret:
+        logger.error("verify_razorpay_signature failed: RAZORPAY_KEY_SECRET not configured.")
+        return False
     message = f"{order_id}|{payment_id}".encode("utf-8")
     expected_signature = hmac.new(
         key_secret.encode("utf-8"),

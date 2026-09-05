@@ -107,8 +107,26 @@ async def upload_appointment_attachment(file: UploadFile = File(...)) -> Appoint
     if not content:
         raise HTTPException(status_code=422, detail="The selected attachment is empty.")
 
+    # Enterprise Security: Verify actual file signature (magic bytes) to prevent MIME spoofing
+    is_valid_magic = False
+    if file.content_type == "application/pdf" and content.startswith(b"%PDF-"):
+        is_valid_magic = True
+    elif file.content_type in ("image/jpeg", "image/jpg") and content.startswith(b"\xff\xd8\xff"):
+        is_valid_magic = True
+    elif file.content_type == "image/png" and content.startswith(b"\x89PNG\r\n\x1a\n"):
+        is_valid_magic = True
+
+    if not is_valid_magic:
+        raise HTTPException(
+            status_code=422,
+            detail="File content does not match the expected PDF or image format.",
+        )
+
+    # Sanitize filename against path traversal
+    safe_filename = os.path.basename(file.filename or "attachment")
+
     document = {
-        "file_name": file.filename or "attachment",
+        "file_name": safe_filename,
         "content_type": file.content_type,
         "size": len(content),
         "data": content,

@@ -44,6 +44,16 @@ api_router.include_router(appointments_router)
 app.include_router(api_router)
 
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+    return response
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error("Unhandled error in API: %s", exc, exc_info=True)
